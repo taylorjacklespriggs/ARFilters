@@ -34,6 +34,9 @@ import com.google.vr.sdk.base.GvrActivity;
 import com.google.vr.sdk.base.GvrView;
 import com.google.vr.sdk.base.HeadTransform;
 import com.google.vr.sdk.base.Viewport;
+import com.taylorjs.hproject.arfilters.shaders.Shader;
+import com.taylorjs.hproject.arfilters.shaders.data.VertexData;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;

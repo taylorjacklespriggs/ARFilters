@@ -7,8 +7,8 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
-            <option value="$USER_HOME$/Dropbox/School/W17/COMP4905/HProject/ARFilters" />
-            <option value="$USER_HOME$/Dropbox/School/W17/COMP4905/HProject/ARFilters/app" />
+            <option value="$USER_HOME$/Dropbox/School/W17/COMP4905/ARFilters" />
+            <option value="$USER_HOME$/Dropbox/School/W17/COMP4905/ARFilters/app" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

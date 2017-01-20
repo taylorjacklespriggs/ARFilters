@@ -14,30 +14,34 @@
  * limitations under the License.
  */
 
-package com.taylorjs.hproject.arfilters;
+package com.taylorjs.hproject.arfilters.shaders.data;
 
 /**
  * Contains vertex, normal and color data.
  */
-public final class VertexData {
+public class VertexData {
 
-  public static final int FACE_COORD_DIMENSION = 2;
-  public static final float[] FACE_COORDS = new float[] {
+    private VertexData() {
+
+    }
+
+    public static final int FACE_COORD_DIMENSION = 2;
+    public static final float[] FACE_COORDS = new float[] {
           // Front direct
           -1.0f, -1.0f,
           -1.0f, 1.0f,
           1.0f, -1.0f,
           1.0f, 1.0f,
-  };
+    };
 
-  public static final int FACE_TEX_COORD_DIMENSION = 3;
-  public static final float[] FACE_TEX_COORDS = new float[] {
+    public static final int FACE_TEX_COORD_DIMENSION = 3;
+    public static final float[] FACE_TEX_COORDS = new float[] {
           // Front direct
           0.0f, 1.0f, 1.0f,
           0.0f, 0.0f, 1.0f,
           1.0f, 1.0f, 1.0f,
           1.0f, 0.0f, 1.0f,
-  };
+    };
 
-  public static final int FACE_NUMBER_VERTICES = FACE_COORDS.length/FACE_COORD_DIMENSION;
+    public static final int FACE_NUMBER_VERTICES = FACE_COORDS.length/FACE_COORD_DIMENSION;
 }

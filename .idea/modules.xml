@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$USER_HOME$/Dropbox/School/W17/COMP4905/HProject/ARFilters/ARFilters.iml" filepath="$USER_HOME$/Dropbox/School/W17/COMP4905/HProject/ARFilters/ARFilters.iml" />
-      <module fileurl="file://$USER_HOME$/Dropbox/School/W17/COMP4905/HProject/ARFilters/app/app.iml" filepath="$USER_HOME$/Dropbox/School/W17/COMP4905/HProject/ARFilters/app/app.iml" />
+      <module fileurl="file://$USER_HOME$/Dropbox/School/W17/COMP4905/ARFilters/ARFilters.iml" filepath="$USER_HOME$/Dropbox/School/W17/COMP4905/ARFilters/ARFilters.iml" />
+      <module fileurl="file://$USER_HOME$/Dropbox/School/W17/COMP4905/ARFilters/app/app.iml" filepath="$USER_HOME$/Dropbox/School/W17/COMP4905/ARFilters/app/app.iml" />
     </modules>
   </component>
 </project>
