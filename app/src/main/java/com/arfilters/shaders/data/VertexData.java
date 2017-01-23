@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.taylorjs.hproject.arfilters.shaders.data;
+package com.arfilters.shaders.data;
 
 /**
  * Contains vertex, normal and color data.

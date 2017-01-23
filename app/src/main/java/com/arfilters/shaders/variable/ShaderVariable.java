@@ -1,7 +1,7 @@
-package com.taylorjs.hproject.arfilters.shaders.variable;
+package com.arfilters.shaders.variable;
 
-import com.taylorjs.hproject.arfilters.GLTools;
-import com.taylorjs.hproject.arfilters.shaders.data.ShaderData;
+import com.arfilters.GLTools;
+import com.arfilters.shaders.data.ShaderData;
 
 /**
  * Created by taylor on 1/20/17.

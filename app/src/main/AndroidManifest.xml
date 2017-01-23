@@ -32,7 +32,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name="com.arfilters.MainActivity"
             android:label="@string/app_name"
             android:screenOrientation="landscape"
             android:configChanges="orientation|keyboardHidden|screenSize"

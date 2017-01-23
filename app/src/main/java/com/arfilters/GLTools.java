@@ -1,4 +1,4 @@
-package com.taylorjs.hproject.arfilters;
+package com.arfilters;
 
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;

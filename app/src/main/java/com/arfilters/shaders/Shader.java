@@ -1,11 +1,20 @@
-package com.taylorjs.hproject.arfilters.shaders;
+package com.arfilters.shaders;
 
 import android.opengl.GLES20;
 import android.util.Log;
 
-import com.taylorjs.hproject.arfilters.GLTools;
-import com.taylorjs.hproject.arfilters.shaders.data.*;
-import com.taylorjs.hproject.arfilters.shaders.variable.*;
+import com.arfilters.GLTools;
+import com.arfilters.shaders.data.Float3Data;
+import com.arfilters.shaders.data.FloatBufferData;
+import com.arfilters.shaders.data.FloatData;
+import com.arfilters.shaders.data.IntegerData;
+import com.arfilters.shaders.data.Matrix3x3ArrayData;
+import com.arfilters.shaders.data.Matrix3x3Data;
+import com.arfilters.shaders.data.TextureLocationData;
+import com.arfilters.shaders.data.VertexAttributeData;
+import com.arfilters.shaders.variable.Attribute;
+import com.arfilters.shaders.variable.ShaderVariable;
+import com.arfilters.shaders.variable.Uniform;
 
 import java.nio.FloatBuffer;
 import java.util.ArrayList;

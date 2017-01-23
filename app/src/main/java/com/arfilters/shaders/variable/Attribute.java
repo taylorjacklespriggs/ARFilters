@@ -1,4 +1,4 @@
-package com.taylorjs.hproject.arfilters.shaders.variable;
+package com.arfilters.shaders.variable;
 
 import android.opengl.GLES20;
 

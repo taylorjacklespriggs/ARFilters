@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.taylorjs.hproject.arfilters;
+package com.arfilters;
 
 import android.Manifest;
 import android.content.Context;
@@ -28,14 +28,16 @@ import android.os.Vibrator;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+
+import com.arfilters.shaders.Shader;
+import com.arfilters.shaders.data.VertexData;
 import com.google.vr.sdk.base.AndroidCompat;
 import com.google.vr.sdk.base.Eye;
 import com.google.vr.sdk.base.GvrActivity;
 import com.google.vr.sdk.base.GvrView;
 import com.google.vr.sdk.base.HeadTransform;
 import com.google.vr.sdk.base.Viewport;
-import com.taylorjs.hproject.arfilters.shaders.Shader;
-import com.taylorjs.hproject.arfilters.shaders.data.VertexData;
+import com.taylorjs.hproject.arfilters.R;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -52,8 +54,6 @@ import android.hardware.Camera;
 import android.graphics.SurfaceTexture;
 import android.util.Pair;
 import android.widget.Toast;
-
-import static com.taylorjs.hproject.arfilters.GLTools.*;
 
 /**
  * A Google VR sample application.
@@ -222,7 +222,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
         GLES20.glClearColor(0.1f, 0.1f, 0.1f, 0.5f); // Dark background so text shows up well.
 
         // Create texture for camera preview
-        cameraTextureLocation = genTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES);
+        cameraTextureLocation = GLTools.genTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES);
         cameraSurfaceTexture = new SurfaceTexture(cameraTextureLocation);
         startCameraPreview();
 
@@ -232,7 +232,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
 
         texTransformBuffer = createFloatBuffer(9);
 
-        vertexShader = loadGLShader(TAG, GLES20.GL_VERTEX_SHADER, readRawTextFile(R.raw.vertex));
+        vertexShader = GLTools.loadGLShader(TAG, GLES20.GL_VERTEX_SHADER, readRawTextFile(R.raw.vertex));
 
         directShader = setupShader(R.raw.direct);
 
@@ -310,11 +310,11 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
 
         shaderIndex = 0;
 
-        checkGLError(TAG, "initGL");
+        GLTools.checkGLError(TAG, "initGL");
     }
 
     private Shader setupShader(int fshid) {
-        int fs = loadGLShader(TAG, GLES20.GL_FRAGMENT_SHADER, readRawTextFile(fshid));
+        int fs = GLTools.loadGLShader(TAG, GLES20.GL_FRAGMENT_SHADER, readRawTextFile(fshid));
 
         Shader shader = new Shader(vertexShader, fs);
 
@@ -378,7 +378,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
             // Update the camera preview texture
             cameraSurfaceTexture.updateTexImage();
 
-            checkGLError(TAG, "onReadyToDraw");
+            GLTools.checkGLError(TAG, "onReadyToDraw");
         }
     }
 
@@ -477,7 +477,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
 
         getCurrentShader().draw();
 
-        checkGLError(TAG, "Drawing face");
+        GLTools.checkGLError(TAG, "Drawing face");
     }
 
     private Pair<Camera.CameraInfo, Integer> getBackCamera() {

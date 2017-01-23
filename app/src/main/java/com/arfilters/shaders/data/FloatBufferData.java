@@ -1,4 +1,4 @@
-package com.taylorjs.hproject.arfilters.shaders.data;
+package com.arfilters.shaders.data;
 
 import java.nio.FloatBuffer;
 

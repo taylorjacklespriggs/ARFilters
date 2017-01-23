@@ -1,4 +1,4 @@
-package com.taylorjs.hproject.arfilters.shaders.data;
+package com.arfilters.shaders.data;
 
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
