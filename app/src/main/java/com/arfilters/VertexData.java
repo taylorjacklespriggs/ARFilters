@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.arfilters.shader.data;
+package com.arfilters;
 
 /**
  * Contains vertex, normal and color data.

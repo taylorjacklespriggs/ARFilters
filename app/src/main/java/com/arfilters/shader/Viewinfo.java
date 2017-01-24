@@ -1,11 +1,10 @@
-
 /*
  *  Copyright (C) 2017  Taylor Jackle Spriggs
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ *  any later version.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -24,12 +23,12 @@ import com.google.vr.sdk.base.HeadTransform;
 
 public class Viewinfo {
 
-    public void updateTextureTransformationMatrix(Matrix3x3Data m3x3) {
-        m3x3.updateData(textureTransformMatrix);
+    public void prepareShaderTextureTransformationMatrix(Shader sh, String transUniName) {
+        sh.addUniform(transUniName, textureTransformationMatrixData);
     }
 
-    public void setTextureTransformMatrix(float[] data) {
-        textureTransformMatrix = data;
+    public void updateTextureTransformationMatrix(float[] data) {
+        textureTransformationMatrixData.updateData(data);
     }
 
     public HeadTransform getHeadTransform() {
@@ -49,15 +48,20 @@ public class Viewinfo {
     }
 
     public Viewinfo() {
-        textureTransformMatrix = new float[9];
+        init();
     }
 
     public Viewinfo(float[] texTrans) {
-        textureTransformMatrix = texTrans;
+        init();
+        updateTextureTransformationMatrix(texTrans);
     }
 
-    private float[] textureTransformMatrix;
+    private void init() {
+        textureTransformationMatrixData = new Matrix3x3Data();
+    }
+
     private Eye eye;
     private HeadTransform headTransform;
+    private Matrix3x3Data textureTransformationMatrixData;
 
 }
