@@ -30,6 +30,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import com.arfilters.shader.Shader;
+import com.arfilters.shader.Viewinfo;
 import com.arfilters.shader.data.FloatData;
 import com.arfilters.shader.data.Matrix3x2Data;
 import com.arfilters.shader.data.Matrix3x3Data;
@@ -89,6 +90,8 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
 
     private TextureLocationData cameraLocationData;
     private int cameraTextureLocation;
+
+    private final Viewinfo viewinfo = new Viewinfo();
 
     private final Matrix3x3Data textureTransformData = new Matrix3x3Data();
 
@@ -151,10 +154,6 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
         hardwareCamera.setParameters(parameters);
     }
 
-    /**
-     * Sets the view to our GvrView and initializes the transformation matrices we will use
-     * to render our scene.
-     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -165,7 +164,6 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
                 Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
 
-            // Should we show an explanation?
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
                 Toast.makeText(this, "Camera access is required.", Toast.LENGTH_SHORT).show();
 
@@ -191,14 +189,9 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
         gvrView.setRenderer(this);
         gvrView.setTransitionViewEnabled(true);
 
-        // Enable Cardboard-trigger feedback with Daydream headsets. This is a simple way of supporting
-        // Daydream controller input for basic interactions using the existing Cardboard trigger API.
         gvrView.enableCardboardTriggerEmulation();
 
         if (gvrView.setAsyncReprojectionEnabled(true)) {
-            // Async reprojection decouples the app framerate from the display framerate,
-            // allowing immersive interaction even at the throttled clockrates set by
-            // sustained performance mode.
             AndroidCompat.setSustainedPerformanceMode(this, true);
         }
 
@@ -233,14 +226,6 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
         }
     }
 
-    /**
-     * Creates the buffers we use to store information about the 3D world.
-     *
-     * <p>OpenGL doesn't use Java arrays, but rather needs data in a format it can understand.
-     * Hence we use ByteBuffers.
-     *
-     * @param config The EGL configuration used when creating the surface.
-     */
     @Override
     public void onSurfaceCreated(EGLConfig config) {
         if(hardwareCamera != null) {
@@ -333,6 +318,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
         shaderList.add(chromaticEdgeShader);
 
         shaderIndex = 0;
+        colorblindIndex = 0;
 
         GLTools.checkGLError(TAG, "initGL");
     }
@@ -377,36 +363,9 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
         }
     }
 
-    /**
-     * Converts a raw text file into a string.
-     *
-     * @param resId The resource ID of the raw text file about to be turned into a shader.
-     * @return The context of the text file, or null in case of error.
-     */
-    private String readRawTextFile(int resId) {
-        InputStream inputStream = getResources().openRawResource(resId);
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line).append("\n");
-            }
-            reader.close();
-            return sb.toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    /**
-     * Prepares OpenGL ES before we draw a frame.
-     *
-     * @param headTransform The head transformation in the new frame.
-     */
     @Override
     public void onNewFrame(HeadTransform headTransform) {
+        viewinfo.setHeadTransform(headTransform);
 
         if(cameraSurfaceTexture != null) {
             // Update the camera preview texture
@@ -416,13 +375,9 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
         }
     }
 
-    /**
-     * Draws a frame for an eye.
-     *
-     * @param eye The eye to render. Includes all required transformations.
-     */
     @Override
     public void onDrawEye(Eye eye) {
+        viewinfo.setEye(eye);
         if(hardwareCamera != null) {
             if(cameraSurfaceTexture == null) {
                 initGL();
@@ -437,10 +392,6 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
     @Override
     public void onFinishFrame(Viewport viewport) {}
 
-
-    /**
-     * Called when the Cardboard trigger is pulled.
-     */
     @Override
     public void onCardboardTrigger() {
         Log.i(TAG, "onCardboardTrigger");
@@ -477,12 +428,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
             nextColourblindShader();
     }
 
-    /**
-     * Draw the cube.
-     *
-     * <p>We've set all of our transformation matrices. Now we simply pass them into the shader.
-     */
-    public void drawFace(Eye eye) {
+    private void drawFace(Eye eye) {
         float scale = .6f;
         float Cw = scale*1920;
         float Ch = scale*1080;
@@ -494,7 +440,9 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
                 0,              Vh/Ch,          0,
                 (1f-Vw/Cw)/2f,  (1f-Vh/Ch)/2f,  1
         };
-        textureTransformData.updateData(texTransformMat);
+        viewinfo.setTextureTransformMatrix(texTransformMat);
+
+        viewinfo.updateTextureTransformationMatrix(textureTransformData);
 
         if(getCurrentShader() == anaglyphShader) {
             colorMapData.updateData(anaglyphMaps[(eye.getType()==Eye.Type.RIGHT) ? 1 : 0]);
@@ -514,6 +462,23 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
             if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
                 return new Pair<>(cameraInfo, i);
             }
+        }
+        return null;
+    }
+
+    private String readRawTextFile(int resId) {
+        InputStream inputStream = getResources().openRawResource(resId);
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+            reader.close();
+            return sb.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return null;
     }
