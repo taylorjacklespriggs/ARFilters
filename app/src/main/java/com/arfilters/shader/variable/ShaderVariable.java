@@ -1,7 +1,7 @@
-package com.arfilters.shaders.variable;
+package com.arfilters.shader.variable;
 
 import com.arfilters.GLTools;
-import com.arfilters.shaders.data.ShaderData;
+import com.arfilters.shader.data.ShaderData;
 
 /**
  * Created by taylor on 1/20/17.
@@ -18,7 +18,7 @@ public abstract class ShaderVariable {
 
     public void update() {
         if(data != null) {
-            data.update(location);
+            data.updateLocation(location);
             GLTools.checkGLError(TAG, "error updating "+getName());
         }
     }
@@ -49,9 +49,10 @@ public abstract class ShaderVariable {
 
     protected abstract int getLocation(int program, String name);
 
-    public ShaderVariable(String varName, int prog) {
+    public ShaderVariable(String varName, int prog, ShaderData dat) {
         name = varName;
         location = getLocation(prog, name);
+        data = dat;
     }
 
     private int location;

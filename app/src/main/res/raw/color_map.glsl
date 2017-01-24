@@ -18,22 +18,14 @@
 
 
 /*
- *  Computes the edges for each color. Passes results through a scaled sigmoid.
+ *  A simple function that computes fragment color using a color mapping matrix. The function
+ *  getFragment(vec2) should be specified.
  */
 
-uniform float u_Threshold;
-uniform float u_Strictness;
+// uniform sampler2D u_Texture;
+uniform mat3 u_ColorMapMatrix;
 
-void sigmoid(out vec3 varOut, in vec3 varIn) {
-    varOut = 1./(1.+exp(-varIn));
-}
-
-void computeColor(out vec3 color, in vec2 fragCoord) {
-    getTextureFragment(color, fragCoord);
-    color = vec3(
-        length(vec2(dFdx(color.r), dFdy(color.r))),
-        length(vec2(dFdx(color.g), dFdy(color.g))),
-        length(vec2(dFdx(color.b), dFdy(color.b)))
-    );
-    sigmoid(color, u_Strictness*(color-u_Threshold));
+void computeColor(out vec3 fragColor, in vec2 texCoord) {
+    getTextureFragment(fragColor, texCoord);
+    fragColor *= u_ColorMapMatrix;
 }

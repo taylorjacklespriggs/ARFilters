@@ -1,4 +1,4 @@
-package com.arfilters.shaders.data;
+package com.arfilters.shader.data;
 
 import android.opengl.GLES20;
 
@@ -10,12 +10,15 @@ import java.nio.FloatBuffer;
 
 
 public class Matrix3x3Data extends FloatBufferData {
-    public Matrix3x3Data(FloatBuffer fb) {
-        super(fb);
-    }
+
     @Override
-    public void update(int location) {
+    public void updateLocation(int location) {
         GLES20.glUniformMatrix3fv(location, 1, false, buffer);
     }
+
+    public Matrix3x3Data() {
+        super(9);
+    }
+
 }
 

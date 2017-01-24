@@ -16,24 +16,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /*
- *  Computes the edges for each color. Passes results through a scaled sigmoid.
+ *  Computes the texture coordinates directly from the uniform v_TexCoord.
  */
 
-uniform float u_Threshold;
-uniform float u_Strictness;
+varying vec2 v_TexCoord;
 
-void sigmoid(out vec3 varOut, in vec3 varIn) {
-    varOut = 1./(1.+exp(-varIn));
-}
-
-void computeColor(out vec3 color, in vec2 fragCoord) {
-    getTextureFragment(color, fragCoord);
-    color = vec3(
-        length(vec2(dFdx(color.r), dFdy(color.r))),
-        length(vec2(dFdx(color.g), dFdy(color.g))),
-        length(vec2(dFdx(color.b), dFdy(color.b)))
-    );
-    sigmoid(color, u_Strictness*(color-u_Threshold));
+void getTextureCoordinates(out vec2 texCoord) {
+    texCoord = v_TexCoord;
 }

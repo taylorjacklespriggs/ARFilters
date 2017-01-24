@@ -1,4 +1,4 @@
-package com.arfilters.shaders.data;
+package com.arfilters.shader.data;
 
 import android.opengl.GLES20;
 
@@ -10,23 +10,29 @@ import java.nio.FloatBuffer;
 
 
 public class VertexAttributeData extends FloatBufferData {
-    public final int dimensions;
-    public VertexAttributeData(int dim, FloatBuffer fb) {
-        super(fb);
-        dimensions = dim;
-    }
+
     @Override
-    public void update(int location) {
+    public void updateLocation(int location) {
         GLES20.glVertexAttribPointer(
                 location, dimensions, GLES20.GL_FLOAT, false, 0, buffer);
     }
+
     @Override
     public void enable(int location) {
         GLES20.glEnableVertexAttribArray(location);
     }
+
     @Override
     public void disable(int location) {
         GLES20.glDisableVertexAttribArray(location);
     }
+
+    public VertexAttributeData(int dim, int len) {
+        super(dim*len);
+        dimensions = dim;
+    }
+
+    public final int dimensions;
+
 }
 

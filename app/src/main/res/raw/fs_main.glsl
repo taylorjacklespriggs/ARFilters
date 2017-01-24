@@ -18,22 +18,18 @@
 
 
 /*
- *  Computes the edges for each color. Passes results through a scaled sigmoid.
+ *  All final pass fragment shader programs should use this main() and implement
+ *  computeTextureCoordinates(out vec2) and computeColor(out vec3, in vec2).
+ *  This reduces reused code.
  */
 
-uniform float u_Threshold;
-uniform float u_Strictness;
-
-void sigmoid(out vec3 varOut, in vec3 varIn) {
-    varOut = 1./(1.+exp(-varIn));
-}
-
-void computeColor(out vec3 color, in vec2 fragCoord) {
-    getTextureFragment(color, fragCoord);
-    color = vec3(
-        length(vec2(dFdx(color.r), dFdy(color.r))),
-        length(vec2(dFdx(color.g), dFdy(color.g))),
-        length(vec2(dFdx(color.b), dFdy(color.b)))
-    );
-    sigmoid(color, u_Strictness*(color-u_Threshold));
+void main() {
+    vec2 texCoord;
+    getTextureCoordinates(texCoord);
+    if(texCoord.x < 0. || texCoord.x > 1.
+        || texCoord.y < 0. || texCoord.y > 1.) {
+        gl_FragColor = vec4(vec3(0.), 1.);
+    } else {
+        computeColor(gl_FragColor.rgb, texCoord);
+    }
 }

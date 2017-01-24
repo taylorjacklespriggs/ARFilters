@@ -1,4 +1,4 @@
-package com.arfilters.shaders.data;
+package com.arfilters.shader.data;
 
 import android.opengl.GLES20;
 
@@ -10,12 +10,15 @@ import java.nio.FloatBuffer;
 
 
 public class Float3Data extends FloatBufferData {
-    public Float3Data(FloatBuffer fb) {
-        super(fb);
-    }
+
     @Override
-    public void update(int location) {
+    public void updateLocation(int location) {
         GLES20.glUniform3fv(location, 1, buffer);
     }
+
+    public Float3Data(int sz) {
+        super(sz);
+    }
+
 }
 

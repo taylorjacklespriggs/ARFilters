@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package com.arfilters.shaders.data;
+package com.arfilters.shader.data;
 
 /**
  * Contains vertex, normal and color data.
  */
 public class VertexData {
 
-    private VertexData() {
-
-    }
-
     public static final int FACE_COORD_DIMENSION = 2;
     public static final float[] FACE_COORDS = new float[] {
-          // Front direct
+          // Front passthrough
           -1.0f, -1.0f,
           -1.0f, 1.0f,
           1.0f, -1.0f,
@@ -36,7 +32,7 @@ public class VertexData {
 
     public static final int FACE_TEX_COORD_DIMENSION = 3;
     public static final float[] FACE_TEX_COORDS = new float[] {
-          // Front direct
+          // Front passthrough
           0.0f, 1.0f, 1.0f,
           0.0f, 0.0f, 1.0f,
           1.0f, 1.0f, 1.0f,

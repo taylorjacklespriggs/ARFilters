@@ -18,22 +18,13 @@
 
 
 /*
- *  Computes the edges for each color. Passes results through a scaled sigmoid.
+ *  Uniform specification required for using hardware camera textures and function for sampling
+ *  texture.
  */
 
-uniform float u_Threshold;
-uniform float u_Strictness;
+uniform samplerExternalOES u_Texture;
 
-void sigmoid(out vec3 varOut, in vec3 varIn) {
-    varOut = 1./(1.+exp(-varIn));
+void getTextureFragment(out vec3 fragColor, in vec2 texCoord) {
+    fragColor = texture2D(u_Texture, texCoord).rgb;
 }
 
-void computeColor(out vec3 color, in vec2 fragCoord) {
-    getTextureFragment(color, fragCoord);
-    color = vec3(
-        length(vec2(dFdx(color.r), dFdy(color.r))),
-        length(vec2(dFdx(color.g), dFdy(color.g))),
-        length(vec2(dFdx(color.b), dFdy(color.b)))
-    );
-    sigmoid(color, u_Strictness*(color-u_Threshold));
-}

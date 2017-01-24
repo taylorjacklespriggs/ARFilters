@@ -29,8 +29,13 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
-import com.arfilters.shaders.Shader;
-import com.arfilters.shaders.data.VertexData;
+import com.arfilters.shader.Shader;
+import com.arfilters.shader.data.FloatData;
+import com.arfilters.shader.data.Matrix3x2Data;
+import com.arfilters.shader.data.Matrix3x3Data;
+import com.arfilters.shader.data.TextureLocationData;
+import com.arfilters.shader.data.VertexAttributeData;
+import com.arfilters.shader.data.VertexData;
 import com.google.vr.sdk.base.AndroidCompat;
 import com.google.vr.sdk.base.Eye;
 import com.google.vr.sdk.base.GvrActivity;
@@ -55,35 +60,75 @@ import android.graphics.SurfaceTexture;
 import android.util.Pair;
 import android.widget.Toast;
 
-/**
- * A Google VR sample application.
- *
- * <p>The TreasureHunt scene consists of a planar ground grid and a floating
- * "treasure" cube. When the user looks at the cube, the cube will turn gold.
- * While gold, the user can activate the Cardboard trigger, either directly
- * using the touch trigger on their Cardboard viewer, or using the Daydream
- * controller-based trigger emulation. Activating the trigger will in turn
- * randomly reposition the cube.
- */
 public class MainActivity extends GvrActivity implements GvrView.StereoRenderer {
 
     private static final String TAG = "MainActivity";
 
-    private FloatBuffer faceVertices;
-    private FloatBuffer faceTexCoords;
-    private FloatBuffer texTransformBuffer;
-    private FloatBuffer anaglyphFilterMatrixBuffer;
+    private enum Precision {
+        LOW,
+        MEDIUM,
+        HIGH;
+
+        public String getString(String primitive) {
+            return "precision" + getPrefix() + primitive + ";\n";
+        }
+
+        private String getPrefix() {
+            switch(this) {
+                case LOW:
+                    return " lowp ";
+                case MEDIUM:
+                    return " mediump ";
+                case HIGH:
+                    return " highp ";
+                default:
+                    return "";
+            }
+        }
+    };
+
+    private TextureLocationData cameraLocationData;
+    private int cameraTextureLocation;
+
+    private final Matrix3x3Data textureTransformData = new Matrix3x3Data();
+
+    private final Matrix3x3Data colorMapData = new Matrix3x3Data();
+
+    private final FloatData threshData = new FloatData(.3f);
+    private final FloatData strictData = new FloatData(20f);
+
+    private final VertexAttributeData faceVertexData = new VertexAttributeData(
+            VertexData.FACE_COORD_DIMENSION, VertexData.FACE_NUMBER_VERTICES);
+
+    private final VertexAttributeData faceTexCoordData = new VertexAttributeData(
+            VertexData.FACE_TEX_COORD_DIMENSION, VertexData.FACE_NUMBER_VERTICES);
+
+    private static final float[][] anaglyphMaps = new float[][] {
+            {1f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f},
+            {0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f}
+    };
+
+    private static final float[][] colorblindMaps = new float[][] {
+            {1.0f,      0.0f,   0.0f,   0.0f,   1.0f,   0.0f,   0.0f,   0.0f,   1.0f}, // normal
+            {0.567f,    0.433f, 0.0f,   0.558f, 0.442f, 0.0f,   0.0f,   0.242f, 0.758f}, // protanopia
+            {0.817f,    0.183f, 0.0f,   0.333f, 0.667f, 0.0f,   0.0f,   0.125f, 0.875f}, // protanomaly
+            {0.625f,    0.375f, 0.0f,   0.7f,   0.3f,   0.0f,   0.0f,   0.3f,   0.7f}, // deuteranopia
+            {0.8f,      0.2f,   0.0f,   0.258f, 0.742f, 0.0f,   0.0f,   0.142f, 0.858f}, // deuteranomaly
+            {0.95f,     0.05f,  0.0f,   0.0f,   0.433f, 0.567f, 0.0f,   0.475f, 0.525f}, // tritanopia
+            {0.967f,    0.033f, 0.0f,   0.0f,   0.733f, 0.267f, 0.0f,   0.183f, 0.817f}, // tritanomaly
+            {0.299f,    0.587f, 0.114f, 0.299f, 0.587f, 0.114f, 0.299f, 0.587f, 0.114f}, // achromatopsia
+            {0.618f,    0.320f, 0.062f, 0.163f, 0.775f, 0.062f, 0.163f, 0.320f, 0.516f}  // achromatomaly
+    };
 
     private Camera hardwareCamera;
     private SurfaceTexture cameraSurfaceTexture;
-    private int cameraTextureLocation;
 
     private int vertexShader;
     private Shader directShader, anaglyphShader, invertedShader, chromaticEdgeShader,
-                    enhancedEdgeShader, gradientEdgeShader, toonShader, colourblindShader,
+                    enhancedEdgeShader, gradientEdgeShader, toonShader, colorblindShader,
                     zoomShader;
     private ArrayList<Shader> shaderList;
-    private int shaderIndex, colourblindIndex;
+    private int shaderIndex, colorblindIndex;
 
     private Vibrator vibrator;
 
@@ -226,86 +271,65 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
         cameraSurfaceTexture = new SurfaceTexture(cameraTextureLocation);
         startCameraPreview();
 
-        faceVertices = createFloatBuffer(VertexData.FACE_COORDS);
+        cameraLocationData = new TextureLocationData(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0,
+                cameraTextureLocation);
 
-        faceTexCoords = createFloatBuffer(VertexData.FACE_TEX_COORDS);
+        faceVertexData.updateData(VertexData.FACE_COORDS);
 
-        texTransformBuffer = createFloatBuffer(9);
+        faceTexCoordData.updateData(VertexData.FACE_TEX_COORDS);
 
         vertexShader = GLTools.loadGLShader(TAG, GLES20.GL_VERTEX_SHADER, readRawTextFile(R.raw.vertex));
 
-        directShader = setupShader(R.raw.direct);
+        directShader = setupShader(R.raw.camera_texture, R.raw.default_texture_coordinates,
+                R.raw.passthrough, true, false, Precision.MEDIUM);
 
-        anaglyphShader = setupShader(R.raw.anaglyph);
-        anaglyphShader.addUniform("u_FilterMatrix");
-        anaglyphFilterMatrixBuffer = createFloatBuffer(new float[]{0f,0f,0f,0f,0f,0f,0f,0f,0f});
-        anaglyphShader.updateMatrix3x3Uniform("u_FilterMatrix",
-                anaglyphFilterMatrixBuffer);
+        anaglyphShader = setupShader(R.raw.camera_texture, R.raw.default_texture_coordinates,
+                R.raw.color_map, true, false, Precision.MEDIUM);
+        anaglyphShader.addUniform("u_ColorMapMatrix", colorMapData);
 
-        invertedShader = setupShader(R.raw.inverted);
+        invertedShader = setupShader(R.raw.camera_texture, R.raw.default_texture_coordinates,
+                R.raw.inverted, true, false, Precision.MEDIUM);
 
         String threshName = "u_Threshold";
-        float threshVal = .3f;
 
         String strictName = "u_Strictness";
-        float strictVal = 20f;
 
-        chromaticEdgeShader = setupShader(R.raw.chromatic_edges);
-        chromaticEdgeShader.addUniform(threshName);
-        chromaticEdgeShader.updateFloatUniform(threshName, threshVal);
-        chromaticEdgeShader.addUniform(strictName);
-        chromaticEdgeShader.updateFloatUniform(strictName, strictVal);
+        chromaticEdgeShader = setupShader(R.raw.camera_texture, R.raw.default_texture_coordinates,
+                R.raw.chromatic_edges, true, true, Precision.MEDIUM);
+        chromaticEdgeShader.addUniform(threshName, threshData);
+        chromaticEdgeShader.addUniform(strictName, strictData);
 
-        enhancedEdgeShader = setupShader(R.raw.enhanced_edges);
-        enhancedEdgeShader.addUniform(threshName);
-        enhancedEdgeShader.updateFloatUniform(threshName, threshVal);
-        enhancedEdgeShader.addUniform(strictName);
-        enhancedEdgeShader.updateFloatUniform(strictName, strictVal);
+        enhancedEdgeShader = setupShader(R.raw.camera_texture, R.raw.default_texture_coordinates,
+                R.raw.enhanced_edges, true, true, Precision.MEDIUM);
+        enhancedEdgeShader.addUniform(threshName, threshData);
+        enhancedEdgeShader.addUniform(strictName, strictData);
 
-        gradientEdgeShader = setupShader(R.raw.gradient_edges);
-        gradientEdgeShader.addUniform(threshName);
-        gradientEdgeShader.updateFloatUniform(threshName, threshVal);
-        gradientEdgeShader.addUniform(strictName);
-        gradientEdgeShader.updateFloatUniform(strictName, strictVal);
+        gradientEdgeShader = setupShader(R.raw.camera_texture, R.raw.default_texture_coordinates,
+                R.raw.gradient_edges, true, true, Precision.MEDIUM);
+        gradientEdgeShader.addUniform(threshName, threshData);
+        gradientEdgeShader.addUniform(strictName, strictData);
 
-        toonShader = setupShader(R.raw.toon);
-        toonShader.addUniform(threshName);
-        toonShader.updateFloatUniform(threshName, threshVal);
-        toonShader.addUniform(strictName);
-        toonShader.updateFloatUniform(strictName, strictVal);
+        toonShader = setupShader(R.raw.camera_texture, R.raw.default_texture_coordinates,
+                R.raw.toon, true, true, Precision.MEDIUM);
+        toonShader.addUniform(threshName, threshData);
+        toonShader.addUniform(strictName, strictData);
 
-        // found this on reddit https://www.reddit.com/r/gamedev/comments/2i9edg/code_to_create_filters_for_colorblind/?st=ixqhs4b0&sh=0a7a20c5
-        colourblindIndex = 0; // 0 - normal; 1 - protanopia; 2 - protanomaly; 3 - deuteranopia;
-                        // 4 - deuteranomaly; 5 - tritanopia; 6 - tritanomaly; 7 - achromatopsia;
-                        // 8 - achromatomaly
-        float[] colourMaps = new float[]{
-                1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // normal
-                0.567f, 0.433f, 0.0f, 0.558f, 0.442f, 0.0f, 0.0f, 0.242f, 0.758f, // protanopia
-                0.817f, 0.183f, 0.0f, 0.333f, 0.667f, 0.0f, 0.0f, 0.125f, 0.875f, // protanomaly
-                0.625f, 0.375f, 0.0f, 0.7f, 0.3f, 0.0f, 0.0f, 0.3f, 0.7f, // deuteranopia
-                0.8f, 0.2f, 0.0f, 0.258f, 0.742f, 0.0f, 0.0f, 0.142f, 0.858f, // deuteranomaly
-                0.95f, 0.05f, 0.0f, 0.0f, 0.433f, 0.567f, 0.0f, 0.475f, 0.525f, // tritanopia
-                0.967f, 0.033f, 0.0f, 0.0f, 0.733f, 0.267f, 0.0f, 0.183f, 0.817f, // tritanomaly
-                0.299f, 0.587f, 0.114f, 0.299f, 0.587f, 0.114f, 0.299f, 0.587f, 0.114f, // achromatopsia
-                0.618f, 0.320f, 0.062f, 0.163f, 0.775f, 0.062f, 0.163f, 0.320f, 0.516f  // achromatomaly
-        };
-        colourblindShader = setupShader(R.raw.daltonize);
-        colourblindShader.addUniform("u_Index");
-        colourblindShader.updateIntegerUniform("u_Index", colourblindIndex);
-        colourblindShader.addUniform("u_ColourMaps");
-        colourblindShader.updateMatrix3x3ArrayUniform("u_ColourMaps", createFloatBuffer(colourMaps), colourMaps.length/9);
+        colorblindShader = setupShader(R.raw.camera_texture, R.raw.default_texture_coordinates,
+                R.raw.color_map, true, false, Precision.MEDIUM);
+        colorblindShader.addUniform("u_ColorMapMatrix", colorMapData);
 
-        zoomShader = setupShader(R.raw.zoom);
+        zoomShader = setupShader(R.raw.camera_texture, R.raw.zoomed_texture_coordinates,
+                R.raw.passthrough, true, false, Precision.HIGH);
 
         shaderList = new ArrayList<>();
         shaderList.add(zoomShader);
+        shaderList.add(colorblindShader);
         shaderList.add(directShader);
         shaderList.add(gradientEdgeShader);
         shaderList.add(enhancedEdgeShader);
         shaderList.add(invertedShader);
         shaderList.add(anaglyphShader);
         shaderList.add(toonShader);
-        shaderList.add(colourblindShader);
         shaderList.add(chromaticEdgeShader);
 
         shaderIndex = 0;
@@ -313,21 +337,31 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
         GLTools.checkGLError(TAG, "initGL");
     }
 
-    private Shader setupShader(int fshid) {
-        int fs = GLTools.loadGLShader(TAG, GLES20.GL_FRAGMENT_SHADER, readRawTextFile(fshid));
+    private Shader setupShader(int getTextureFragmentID, int getTextureCoordinatesID,
+                               int computeColorID, boolean useCamera, boolean useDerivatives,
+                               Precision floatPrecision) {
+        StringBuilder sb = new StringBuilder();
+        if(useCamera) {
+            sb.append("#extension GL_OES_EGL_image_external : require\n");
+        }
+        if(useDerivatives) {
+            sb.append("#extension GL_OES_standard_derivatives : enable\n");
+        }
+        sb.append(floatPrecision.getString("float"));
+        sb.append(readRawTextFile(getTextureFragmentID));
+        sb.append(readRawTextFile(getTextureCoordinatesID));
+        sb.append(readRawTextFile(computeColorID));
+        sb.append(readRawTextFile(R.raw.fs_main));
+        int fs = GLTools.loadGLShader(TAG, GLES20.GL_FRAGMENT_SHADER, sb.toString());
 
         Shader shader = new Shader(vertexShader, fs);
 
-        shader.createVertices("a_Position", VertexData.FACE_COORD_DIMENSION, faceVertices,
-                "a_TexCoord", VertexData.FACE_TEX_COORD_DIMENSION, faceTexCoords,
+        shader.createVertices("a_Position", faceVertexData, "a_TexCoord", faceTexCoordData,
                 VertexData.FACE_NUMBER_VERTICES);
 
-        shader.addUniform("u_Camera");
-        shader.updateTextureUniform(
-                "u_Camera", GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0, cameraTextureLocation);
+        shader.addUniform("u_Texture", cameraLocationData);
 
-        shader.addUniform("u_TexCoordTransform");
-        shader.updateMatrix3x3Uniform("u_TexCoordTransform", texTransformBuffer);
+        shader.addUniform("u_TexCoordTransform", textureTransformData);
 
         return shader;
     }
@@ -422,24 +456,24 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
     }
 
     private boolean nextColourblindShader() {
-        ++colourblindIndex;
-        if(colourblindIndex < 9) {
-            colourblindShader.updateIntegerUniform("u_Index", colourblindIndex);
-            Log.i(TAG, "Currently selected shader is colourblind shader index "+colourblindIndex);
+        ++colorblindIndex;
+        if(colorblindIndex < 9) {
+            colorMapData.updateData(colorblindMaps[colorblindIndex]);
+            Log.i(TAG, "Currently selected shader is colourblind shader index "+ colorblindIndex);
             return true;
         }
-        colourblindIndex = 0;
+        colorblindIndex = 0;
         return false;
     }
 
     private void nextShader() {
-        if(getCurrentShader() == colourblindShader) {
+        if(getCurrentShader() == colorblindShader) {
             if(nextColourblindShader())
                 return;
         }
         ++shaderIndex;
         shaderIndex %= shaderList.size();
-        if(getCurrentShader() == colourblindShader)
+        if(getCurrentShader() == colorblindShader)
             nextColourblindShader();
     }
 
@@ -460,19 +494,10 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
                 0,              Vh/Ch,          0,
                 (1f-Vw/Cw)/2f,  (1f-Vh/Ch)/2f,  1
         };
-        texTransformBuffer.put(texTransformMat);
-        texTransformBuffer.position(0);
+        textureTransformData.updateData(texTransformMat);
 
         if(getCurrentShader() == anaglyphShader) {
-            switch(eye.getType()) {
-                case Eye.Type.RIGHT:
-                    anaglyphFilterMatrixBuffer.put(new float[]{0f,0f,0f,0f,1f,0f,0f,0f,1f});
-                    break;
-                default:
-                    anaglyphFilterMatrixBuffer.put(new float[]{1f,0f,0f,0f,0f,0f,0f,0f,0f});
-                    break;
-            }
-            anaglyphFilterMatrixBuffer.position(0);
+            colorMapData.updateData(anaglyphMaps[(eye.getType()==Eye.Type.RIGHT) ? 1 : 0]);
         }
 
         getCurrentShader().draw();

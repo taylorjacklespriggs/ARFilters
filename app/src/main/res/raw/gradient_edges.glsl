@@ -1,35 +1,42 @@
-#extension GL_OES_EGL_image_external : require
-#extension GL_OES_standard_derivatives : enable
 
-precision mediump float;
+/*
+ *  Copyright (C) 2017  Taylor Jackle Spriggs
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-uniform samplerExternalOES u_Camera;
+
+/*
+ *  Computes the edges for each color. Computes the length of the resulting color and passes
+ *  through a sigmoid.
+ */
+
 uniform float u_Threshold;
 uniform float u_Strictness;
 
-varying vec2 v_TexCoord;
-
-float sigmoid(float varIn) {
-    return 1./(1.+exp(-varIn));
+void sigmoid(out float varOut, in float varIn) {
+    varOut = 1./(1.+exp(-varIn));
 }
 
-void getEdges(out vec4 fragColour, in vec2 fragCoord) {
-    vec3 colour = texture2D(u_Camera, fragCoord).rgb;
-    vec3 gradient = vec3(
-        length(vec2(dFdx(colour.r), dFdy(colour.r))),
-        length(vec2(dFdx(colour.g), dFdy(colour.g))),
-        length(vec2(dFdx(colour.b), dFdy(colour.b)))
+void computeColor(out vec3 color, in vec2 fragCoord) {
+    getTextureFragment(color, fragCoord);
+    color = vec3(
+        length(vec2(dFdx(color.r), dFdy(color.r))),
+        length(vec2(dFdx(color.g), dFdy(color.g))),
+        length(vec2(dFdx(color.b), dFdy(color.b)))
     );
-    float gLength = length(gradient);
-    gLength = sigmoid(u_Strictness*(gLength-u_Threshold));
-    fragColour = vec4(vec3(gLength), 1.);
-}
-
-void main() {
-    if(v_TexCoord.x*(1.-v_TexCoord.x) < 0.
-        || v_TexCoord.y*(1.-v_TexCoord.y) < 0.) {
-        gl_FragColor = vec4(vec3(0.), 1.);
-    } else {
-        getEdges(gl_FragColor, v_TexCoord);
-    }
+    float gLength = length(color);
+    sigmoid(gLength, u_Strictness*(gLength-u_Threshold));
+    color = vec3(gLength);
 }

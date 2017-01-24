@@ -16,24 +16,24 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /*
- *  Computes the edges for each color. Passes results through a scaled sigmoid.
+ *  Modifies the texture coordinates for a zoomed-in effect in the center.
  */
 
-uniform float u_Threshold;
-uniform float u_Strictness;
+varying vec2 v_TexCoord;
 
-void sigmoid(out vec3 varOut, in vec3 varIn) {
-    varOut = 1./(1.+exp(-varIn));
+void transform(out vec2 outCoord, in vec2 inCoord) {
+    const float v1 = .02;
+    const float v2 = 1.;
+    const float v3 = 10.;
+    float lensq = dot(inCoord, inCoord);
+    lensq = v3*((sqrt(lensq+v2)-sqrt(v2))/sqrt(lensq)+v1);
+    outCoord = lensq*inCoord;
 }
 
-void computeColor(out vec3 color, in vec2 fragCoord) {
-    getTextureFragment(color, fragCoord);
-    color = vec3(
-        length(vec2(dFdx(color.r), dFdy(color.r))),
-        length(vec2(dFdx(color.g), dFdy(color.g))),
-        length(vec2(dFdx(color.b), dFdy(color.b)))
-    );
-    sigmoid(color, u_Strictness*(color-u_Threshold));
+void getTextureCoordinates(out vec2 texCoord) {
+    texCoord = v_TexCoord;
+    texCoord -= .5;
+    transform(texCoord, texCoord);
+    texCoord += .5;
 }
