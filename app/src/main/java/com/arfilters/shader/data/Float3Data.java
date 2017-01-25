@@ -12,7 +12,7 @@ import java.nio.FloatBuffer;
 public class Float3Data extends FloatBufferData {
 
     @Override
-    public void updateLocation(int location) {
+    protected void doUniformUpdate(int location) {
         GLES20.glUniform3fv(location, 1, buffer);
     }
 

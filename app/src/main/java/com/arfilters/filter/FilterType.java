@@ -15,19 +15,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.arfilters.shader.data;
+package com.arfilters.filter;
 
-import android.opengl.GLES20;
+public enum FilterType {
+    PASSTHROUGH,
+    ZOOM,
+    ANAGLYPH,
+    PROTANOPIA,
+    PROTANOMALY,
+    DEUTERANOPIA,
+    DEUTERANOMALY,
+    TRITANOPIA,
+    TRITANOMALY,
+    ACHROMATOPSIA,
+    ACHROMATOMALY;
 
-public class FloatArrayData extends FloatBufferData {
-
-    @Override
-    protected void doUniformUpdate(int location) {
-        GLES20.glGetUniformfv(location, 1, buffer);
+    public int getColorblindIndex() {
+        return this.ordinal() - FilterType.PROTANOPIA.ordinal();
     }
 
-    public FloatArrayData(int length) {
-        super(length);
+    public boolean isColorblindType() {
+        return this.ordinal() >= FilterType.PROTANOPIA.ordinal()
+                && this.ordinal() <= FilterType.ACHROMATOMALY.ordinal();
     }
-
 }

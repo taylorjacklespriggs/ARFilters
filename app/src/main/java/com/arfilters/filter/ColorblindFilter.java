@@ -15,19 +15,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.arfilters.shader.data;
+package com.arfilters.filter;
 
-import android.opengl.GLES20;
+import com.arfilters.shader.Viewinfo;
 
-public class FloatArrayData extends FloatBufferData {
+public class ColorblindFilter extends Filter {
 
     @Override
-    protected void doUniformUpdate(int location) {
-        GLES20.glGetUniformfv(location, 1, buffer);
+    public void draw(Viewinfo vi) {
+        colorMapFilter.updateColorMap(colorMap);
+        colorMapFilter.draw(vi);
     }
 
-    public FloatArrayData(int length) {
-        super(length);
+    public ColorblindFilter(ColorMapFilter cmf, float[] cbMap) {
+        colorMapFilter = cmf;
+        colorMap = cbMap;
     }
 
+    private ColorMapFilter colorMapFilter;
+    private float[] colorMap;
 }

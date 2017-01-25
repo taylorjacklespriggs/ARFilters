@@ -17,17 +17,10 @@
 
 package com.arfilters.shader.data;
 
-import android.opengl.GLES20;
+public interface AttributeData {
 
-public class FloatArrayData extends FloatBufferData {
+    void enable(int location);
 
-    @Override
-    protected void doUniformUpdate(int location) {
-        GLES20.glGetUniformfv(location, 1, buffer);
-    }
-
-    public FloatArrayData(int length) {
-        super(length);
-    }
+    void disable(int location);
 
 }

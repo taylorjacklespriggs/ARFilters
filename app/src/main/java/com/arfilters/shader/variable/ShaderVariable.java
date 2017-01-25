@@ -17,34 +17,8 @@ public abstract class ShaderVariable {
     }
 
     public void update() {
-        if(data != null) {
-            data.updateLocation(location);
-            GLTools.checkGLError(TAG, "error updating "+getName());
-        }
-    }
-
-    public void enable() {
-        if(data != null) {
-            data.enable(location);
-        }
-    }
-
-    public void disable() {
-        if(data != null) {
-            data.disable(location);
-        }
-    }
-
-    public void setData(ShaderData sd) {
-        data = sd;
-    }
-
-    public ShaderData getData() {
-        return data;
-    }
-
-    public boolean hasData() {
-        return data != null;
+        data.updateLocation(location);
+        GLTools.checkGLError(TAG, "error updating "+getName());
     }
 
     protected abstract int getLocation(int program, String name);
@@ -55,9 +29,9 @@ public abstract class ShaderVariable {
         data = dat;
     }
 
-    private int location;
-    private String name;
-    private ShaderData data;
+    protected final int location;
+    private final String name;
+    private final ShaderData data;
 
 }
 

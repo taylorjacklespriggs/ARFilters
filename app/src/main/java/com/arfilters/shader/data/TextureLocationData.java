@@ -11,12 +11,12 @@ import android.opengl.GLES20;
 public class TextureLocationData extends ShaderData<Integer> {
 
     @Override
-    public void updateData(Integer texNum) {
+    protected void doDataUpdate(Integer texNum) {
         textureNumber = texNum;
     }
 
     @Override
-    public void updateLocation(int location) {
+    protected void doUniformUpdate(int location) {
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + textureNumber);
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureLocation);
         GLES20.glUniform1i(location, textureNumber);

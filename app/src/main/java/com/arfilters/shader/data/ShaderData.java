@@ -6,12 +6,28 @@ package com.arfilters.shader.data;
 
 public abstract class ShaderData<DataType> {
 
-    public abstract void updateData(DataType dt);
+    protected abstract void doDataUpdate(DataType dt);
 
-    public abstract void updateLocation(int location);
+    protected abstract void doUniformUpdate(int loc);
 
-    public void enable(int location) {}
+    public final void updateData(DataType dt) {
+        modified = true;
+        doDataUpdate(dt);
+    }
 
-    public void disable(int location) {}
+    public final void updateLocation(int location) {
+        doUniformUpdate(location);
+        modified = false;
+    }
+
+    public void reset() {
+        modified = true;
+    }
+
+    public boolean isModified() {
+        return modified;
+    }
+
+    private boolean modified = true;
 
 }

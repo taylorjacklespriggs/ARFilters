@@ -43,41 +43,56 @@ public class Shader {
     public void createVertices(String positionName, VertexAttributeData verts,
                                String texCoordName, VertexAttributeData texCoords,
                                int length) {
-        Attribute pos = new Attribute(positionName, finalProgram, verts);
+        Attribute pos = new Attribute(positionName, finalProgram, verts, verts);
         vertexAttributes.add(pos);
 
-        Attribute tex = new Attribute(texCoordName, finalProgram, texCoords);
+        Attribute tex = new Attribute(texCoordName, finalProgram, texCoords, texCoords);
         vertexAttributes.add(tex);
 
         drawLength = length;
     }
 
-    public void draw() {
-        GLTools.checkGLError(TAG, "enter draw");
+    private void initialize() {
+
+        GLTools.checkGLError(TAG, "enter initialize");
 
         GLES20.glUseProgram(finalProgram);
-        for(Attribute att: vertexAttributes) {
-            att.update();
-        }
-        GLTools.checkGLError(TAG, "update attributes");
+        GLTools.checkGLError(TAG, "swapped programs");
 
-        for(ShaderVariable sv: uniforms.values()) {
-            sv.update();
-        }
-        GLTools.checkGLError(TAG, "update uniforms");
+        updateAttributes();
+
+        updateUniforms();
 
         for(Attribute att: vertexAttributes) {
             att.enable();
         }
         GLTools.checkGLError(TAG, "enable attributes");
 
+    }
+
+    public void draw() {
+
+        initialize();
+
+        GLTools.checkGLError(TAG, "enter draw");
+
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, drawLength);
         GLTools.checkGLError(TAG, "draw triangles");
+
+        exit();
+
+    }
+
+    private void exit() {
+
+        GLTools.checkGLError(TAG, "enter exit");
 
         for(Attribute att: vertexAttributes) {
             att.disable();
         }
         GLTools.checkGLError(TAG, "disable attributes");
+
     }
 
     public Shader(int vProgram, int fProgram) {
@@ -88,6 +103,24 @@ public class Shader {
         GLES20.glUseProgram(finalProgram);
         uniforms = new HashMap<>();
         vertexAttributes = new ArrayList<>();
+    }
+
+    private void updateUniforms() {
+
+        for(ShaderVariable sv: uniforms.values()) {
+            sv.update();
+        }
+        GLTools.checkGLError(TAG, "update uniforms");
+
+    }
+
+    private void updateAttributes() {
+
+        for(Attribute att: vertexAttributes) {
+            att.update();
+        }
+        GLTools.checkGLError(TAG, "update attributes");
+
     }
 
     private final int finalProgram;

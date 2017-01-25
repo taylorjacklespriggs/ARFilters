@@ -2,6 +2,7 @@ package com.arfilters.shader.variable;
 
 import android.opengl.GLES20;
 
+import com.arfilters.shader.data.AttributeData;
 import com.arfilters.shader.data.ShaderData;
 
 /**
@@ -16,9 +17,20 @@ public class Attribute extends ShaderVariable {
         return GLES20.glGetAttribLocation(program, name);
     }
 
-    public Attribute(String name, int prog, ShaderData data) {
-        super(name, prog, data);
+    public void enable() {
+        attributeData.enable(location);
     }
+
+    public void disable() {
+        attributeData.disable(location);
+    }
+
+    public Attribute(String name, int prog, ShaderData data, AttributeData aData) {
+        super(name, prog, data);
+        attributeData = aData;
+    }
+
+    private AttributeData attributeData;
 
 }
 

@@ -29,6 +29,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
+import com.arfilters.filter.Filter;
+import com.arfilters.filter.FilterGenerator;
 import com.arfilters.shader.Precision;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.ShaderGenerator;
@@ -53,6 +55,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
 import javax.microedition.khronos.egl.EGLConfig;
 
@@ -68,7 +72,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
     private TextureLocationData cameraLocationData;
     private int cameraTextureLocation;
 
-    private final Viewinfo viewinfo = new Viewinfo();
+    private Viewinfo viewinfo;
 
     private final Matrix3x3Data colorMapData = new Matrix3x3Data();
 
@@ -195,6 +199,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
     }
 
     private void startCameraPreview() {
+        cameraSurfaceTexture = new SurfaceTexture(cameraTextureLocation);
         try {
             hardwareCamera.setPreviewTexture(cameraSurfaceTexture);
             hardwareCamera.startPreview();
@@ -211,20 +216,11 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
         }
     }
 
-    private FloatBuffer createFloatBuffer(int count) {
-        ByteBuffer bbVertices = ByteBuffer.allocateDirect(count * 4);
-        bbVertices.order(ByteOrder.nativeOrder());
-        return bbVertices.asFloatBuffer();
-    }
-
-    private FloatBuffer createFloatBuffer(float[] vals) {
-        FloatBuffer fb = createFloatBuffer(vals.length);
-        fb.put(vals);
-        fb.position(0);
-        return fb;
-    }
-
     private ResourceLoader resourceLoader;
+    private FilterGenerator filterGenerator;
+    private Collection<Filter> filters;
+    private Iterator<Filter> filterIterator;
+    private Filter currentFilter;
 
     private void setupShader(Shader sh) {
         sh.createVertices("a_Position", faceVertexData, "a_TexCoord", faceTexCoordData,
@@ -239,26 +235,20 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
 
         resourceLoader = new ResourceLoader(this);
 
-        vertexShader = GLTools.loadGLShader(TAG, GLES20.GL_VERTEX_SHADER,
-                resourceLoader.readRawTextFile(R.raw.vertex));
+        filterGenerator = new FilterGenerator(resourceLoader);
 
-        shaderGenerator = new ShaderGenerator(resourceLoader, vertexShader,
-                resourceLoader.readRawTextFile(R.raw.camera_texture),
-                resourceLoader.readRawTextFile(R.raw.default_texture_coordinates),
-                resourceLoader.readRawTextFile(R.raw.passthrough),
-                resourceLoader.readRawTextFile(R.raw.fs_main), true, false, Precision.MEDIUM);
+        viewinfo = filterGenerator.getViewinfo();
 
         // Create texture for camera preview
-        cameraTextureLocation = GLTools.genTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES);
-        cameraSurfaceTexture = new SurfaceTexture(cameraTextureLocation);
+        cameraTextureLocation = filterGenerator.getCameraTextureLocation();
+
         startCameraPreview();
 
-        cameraLocationData = new TextureLocationData(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0,
-                cameraTextureLocation);
+        filters = filterGenerator.generateFilters();
 
-        faceVertexData.updateData(VertexData.FACE_COORDS);
+        nextFilter();
 
-        faceTexCoordData.updateData(VertexData.FACE_TEX_COORDS);
+        /*
 
         directShader = shaderGenerator.generateDefaultShader();
 
@@ -317,6 +307,14 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
         colorblindIndex = 0;
 
         GLTools.checkGLError(TAG, "initGL");
+        */
+    }
+
+    private void nextFilter() {
+        if(filterIterator == null || !filterIterator.hasNext()) {
+            filterIterator = filters.iterator();
+        }
+        currentFilter = filterIterator.next();
     }
 
     @Override
@@ -350,9 +348,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
                 initGL();
             }
 
-            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-
-            drawFace(eye);
+            currentFilter.draw(viewinfo);
         }
     }
 
@@ -363,7 +359,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
     public void onCardboardTrigger() {
         Log.i(TAG, "onCardboardTrigger");
 
-        nextShader();
+        nextFilter();
 
         // Always give user feedback.
         vibrator.vibrate(50);
@@ -382,17 +378,6 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
         }
         colorblindIndex = 0;
         return false;
-    }
-
-    private void nextShader() {
-        if(getCurrentShader() == colorblindShader) {
-            if(nextColourblindShader())
-                return;
-        }
-        ++shaderIndex;
-        shaderIndex %= shaderList.size();
-        if(getCurrentShader() == colorblindShader)
-            nextColourblindShader();
     }
 
     private void drawFace(Eye eye) {
