@@ -19,7 +19,7 @@ package com.arfilters.filter;
 
 import com.arfilters.shader.Viewinfo;
 
-public class ColorblindFilter extends Filter {
+public class ColorblindFilter implements Filter {
 
     @Override
     public void draw(Viewinfo vi) {

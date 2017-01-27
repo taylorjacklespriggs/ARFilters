@@ -71,6 +71,8 @@ public class FilterGenerator {
         switch(type) {
             case ANAGLYPH:
                 return new AnaglyphFilter(colorMapFilter, anaglyphMaps[0], anaglyphMaps[1]);
+            case HUE_ROTATION:
+                return new HueRotationFilter(colorMapFilter, 600);
             case PASSTHROUGH:
             case ZOOM:
                 return new SingleShaderFilter(sh);

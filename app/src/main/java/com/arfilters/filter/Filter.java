@@ -19,21 +19,8 @@ package com.arfilters.filter;
 
 import com.arfilters.shader.Viewinfo;
 
-public abstract class Filter {
+public interface Filter {
 
-    public void draw(Viewinfo vi) {
-        float scale = .6f;
-        float Cw = scale*1920;
-        float Ch = scale*1080;
-        float Vw = vi.getEye().getViewport().width;
-        float Vh = vi.getEye().getViewport().height;
-
-        float[] texTransformMat = new float[] {
-                Vw/Cw,          0,              0,
-                0,              Vh/Ch,          0,
-                (1f-Vw/Cw)/2f,  (1f-Vh/Ch)/2f,  1
-        };
-        vi.updateTextureTransformationMatrix(texTransformMat);
-    }
+    void draw(Viewinfo vi);
 
 }

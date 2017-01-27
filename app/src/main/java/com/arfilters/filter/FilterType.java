@@ -20,6 +20,7 @@ package com.arfilters.filter;
 public enum FilterType {
     PASSTHROUGH,
     ZOOM,
+    HUE_ROTATION,
     ANAGLYPH,
     PROTANOPIA,
     PROTANOMALY,

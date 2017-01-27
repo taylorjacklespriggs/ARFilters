@@ -21,7 +21,7 @@ import com.arfilters.shader.Shader;
 import com.arfilters.shader.Viewinfo;
 import com.google.vr.sdk.base.Eye;
 
-public class AnaglyphFilter extends Filter {
+public class AnaglyphFilter implements Filter {
 
     @Override
     public void draw(Viewinfo vi) {

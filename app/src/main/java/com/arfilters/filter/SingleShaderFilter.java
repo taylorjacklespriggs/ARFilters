@@ -20,7 +20,7 @@ package com.arfilters.filter;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.Viewinfo;
 
-public class SingleShaderFilter extends Filter {
+public class SingleShaderFilter implements Filter {
 
     public SingleShaderFilter(Shader sh) {
         shader = sh;
@@ -28,7 +28,18 @@ public class SingleShaderFilter extends Filter {
 
     @Override
     public void draw(Viewinfo vi) {
-        super.draw(vi);
+        float scale = .6f;
+        float Cw = scale*1920;
+        float Ch = scale*1080;
+        float Vw = vi.getEye().getViewport().width;
+        float Vh = vi.getEye().getViewport().height;
+
+        float[] texTransformMat = new float[] {
+                Vw/Cw,          0,              0,
+                0,              Vh/Ch,          0,
+                (1f-Vw/Cw)/2f,  (1f-Vh/Ch)/2f,  1
+        };
+        vi.updateTextureTransformationMatrix(texTransformMat);
         shader.draw();
     }
 
