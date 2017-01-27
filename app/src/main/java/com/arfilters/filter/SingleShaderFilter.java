@@ -18,7 +18,7 @@
 package com.arfilters.filter;
 
 import com.arfilters.shader.Shader;
-import com.arfilters.shader.Viewinfo;
+import com.arfilters.shader.ViewInfo;
 
 public class SingleShaderFilter implements Filter {
 
@@ -27,7 +27,7 @@ public class SingleShaderFilter implements Filter {
     }
 
     @Override
-    public void draw(Viewinfo vi) {
+    public void draw(ViewInfo vi) {
         float scale = .6f;
         float Cw = scale*1920;
         float Ch = scale*1080;

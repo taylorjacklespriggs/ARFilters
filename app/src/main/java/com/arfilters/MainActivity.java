@@ -21,7 +21,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Rect;
-import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.os.Bundle;
 import android.os.Vibrator;
@@ -31,10 +30,9 @@ import android.util.Log;
 
 import com.arfilters.filter.Filter;
 import com.arfilters.filter.FilterGenerator;
-import com.arfilters.shader.Precision;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.ShaderGenerator;
-import com.arfilters.shader.Viewinfo;
+import com.arfilters.shader.ViewInfo;
 import com.arfilters.shader.data.FloatData;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.arfilters.shader.data.TextureLocationData;
@@ -47,13 +45,7 @@ import com.google.vr.sdk.base.HeadTransform;
 import com.google.vr.sdk.base.Viewport;
 import com.taylorjs.hproject.arfilters.R;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -72,7 +64,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
     private TextureLocationData cameraLocationData;
     private int cameraTextureLocation;
 
-    private Viewinfo viewinfo;
+    private ViewInfo viewinfo;
 
     private final Matrix3x3Data colorMapData = new Matrix3x3Data();
 
@@ -237,7 +229,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
 
         filterGenerator = new FilterGenerator(resourceLoader);
 
-        viewinfo = filterGenerator.getViewinfo();
+        viewinfo = filterGenerator.getViewInfo();
 
         // Create texture for camera preview
         cameraTextureLocation = filterGenerator.getCameraTextureLocation();

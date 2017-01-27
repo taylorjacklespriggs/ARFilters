@@ -17,14 +17,13 @@
 
 package com.arfilters.filter;
 
-import com.arfilters.shader.Shader;
-import com.arfilters.shader.Viewinfo;
+import com.arfilters.shader.ViewInfo;
 import com.google.vr.sdk.base.Eye;
 
 public class AnaglyphFilter implements Filter {
 
     @Override
-    public void draw(Viewinfo vi) {
+    public void draw(ViewInfo vi) {
         switch(vi.getEye().getType()) {
             case Eye.Type.RIGHT:
                 colorMapFilter.updateColorMap(rightMap);

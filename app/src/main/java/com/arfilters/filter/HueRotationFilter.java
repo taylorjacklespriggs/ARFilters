@@ -17,7 +17,7 @@
 
 package com.arfilters.filter;
 
-import com.arfilters.shader.Viewinfo;
+import com.arfilters.shader.ViewInfo;
 
 /**
  * Created by taylor on 1/26/17.
@@ -26,7 +26,7 @@ import com.arfilters.shader.Viewinfo;
 public class HueRotationFilter implements Filter {
 
     @Override
-    public void draw(Viewinfo vi) {
+    public void draw(ViewInfo vi) {
         colorMapFilter.updateColorMap(computeMatrix((float)((count++)*2*Math.PI/loopFrames)));
         colorMapFilter.draw(vi);
     }

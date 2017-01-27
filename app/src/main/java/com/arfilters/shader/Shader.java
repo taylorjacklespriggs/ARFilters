@@ -44,10 +44,10 @@ public class Shader {
                                String texCoordName, VertexAttributeData texCoords,
                                int length) {
         Attribute pos = new Attribute(positionName, finalProgram, verts, verts);
-        vertexAttributes.add(pos);
+        vertexAttributes[0] = pos;
 
         Attribute tex = new Attribute(texCoordName, finalProgram, texCoords, texCoords);
-        vertexAttributes.add(tex);
+        vertexAttributes[1] = tex;
 
         drawLength = length;
     }
@@ -102,7 +102,6 @@ public class Shader {
         GLES20.glLinkProgram(finalProgram);
         GLES20.glUseProgram(finalProgram);
         uniforms = new HashMap<>();
-        vertexAttributes = new ArrayList<>();
     }
 
     private void updateUniforms() {
@@ -125,6 +124,6 @@ public class Shader {
 
     private final int finalProgram;
     private HashMap<String, Uniform> uniforms;
-    private ArrayList<Attribute> vertexAttributes;
+    private final Attribute[] vertexAttributes = new Attribute[2];
     private int drawLength;
 }

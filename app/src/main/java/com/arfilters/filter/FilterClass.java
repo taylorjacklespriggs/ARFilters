@@ -17,21 +17,10 @@
 
 package com.arfilters.filter;
 
-import com.arfilters.shader.ViewInfo;
-
-public class ColorblindFilter implements Filter {
-
-    @Override
-    public void draw(ViewInfo vi) {
-        colorMapFilter.updateColorMap(colorMap);
-        colorMapFilter.draw(vi);
-    }
-
-    public ColorblindFilter(ColorMapFilter cmf, float[] cbMap) {
-        colorMapFilter = cmf;
-        colorMap = cbMap;
-    }
-
-    private ColorMapFilter colorMapFilter;
-    private float[] colorMap;
+public enum FilterClass {
+    PLAIN,
+    COLOR_MAP,
+    TEXTURE_WARP,
+    EDGES,
+    UNKNOWN
 }

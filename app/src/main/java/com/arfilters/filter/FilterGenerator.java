@@ -19,13 +19,14 @@ package com.arfilters.filter;
 
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
+import android.util.Log;
 
 import com.arfilters.GLTools;
 import com.arfilters.ResourceLoader;
 import com.arfilters.VertexData;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.ShaderGenerator;
-import com.arfilters.shader.Viewinfo;
+import com.arfilters.shader.ViewInfo;
 import com.arfilters.shader.data.FloatData;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.arfilters.shader.data.TextureLocationData;
@@ -41,48 +42,40 @@ public class FilterGenerator {
         return cameraTextureLocation;
     }
 
-    public Viewinfo getViewinfo() {
-        return viewinfo;
+    public ViewInfo getViewInfo() {
+        return viewInfo;
     }
 
     private void prepareShader(Shader sh) {
         sh.createVertices("a_Position", faceVertexData, "a_TexCoord", faceTexCoordData,
                 VertexData.FACE_NUMBER_VERTICES);
         sh.addUniform("u_Texture", cameraLocationData);
-        viewinfo.prepareShaderTextureTransformationMatrix(sh, "u_TexCoordTransform");
-    }
-
-    private Shader generateFromFilterType(FilterType type) {
-        switch(type) {
-            case ZOOM:
-                return initialPassShaderGenerator.generateModifiedTextureCoordinatesShader(
-                        R.raw.zoomed_texture_coordinates, com.arfilters.shader.Precision.HIGH);
-            case ANAGLYPH:
-                return initialPassShaderGenerator.generateModifiedColorShader(
-                        R.raw.color_map, false);
-            default:
-                return initialPassShaderGenerator.generateDefaultShader();
-        }
+        viewInfo.prepareShaderTextureTransformationMatrix(sh, "u_TexCoordTransform");
     }
 
     public Filter generateFilter(FilterType type) {
-        Shader sh = generateFromFilterType(type);
-        prepareShader(sh);
         switch(type) {
             case ANAGLYPH:
                 return new AnaglyphFilter(colorMapFilter, anaglyphMaps[0], anaglyphMaps[1]);
             case HUE_ROTATION:
                 return new HueRotationFilter(colorMapFilter, 600);
-            case PASSTHROUGH:
+            case PASS_THROUGH:
             case ZOOM:
+            case GRAY_EDGES:
+                Shader sh = type.generateShader(initialPassShaderGenerator);
+                prepareShader(sh);
+                if(type.getClassType() == FilterClass.EDGES) {
+                    sh.addUniform("u_Threshold", threshData);
+                    sh.addUniform("u_Strictness", strictData);
+                }
                 return new SingleShaderFilter(sh);
-            default:
-                break;
         }
         if(type.isColorblindType()) {
             return new ColorblindFilter(colorMapFilter, colorblindMaps[type.getColorblindIndex()]);
         }
-        return null;
+
+        Log.e(TAG, "no filter for "+type);
+        throw new RuntimeException("Could not generate the filter for "+type);
     }
 
     public Collection<Filter> generateFilters() {
@@ -133,7 +126,7 @@ public class FilterGenerator {
 
     private ColorMapFilter colorMapFilter;
 
-    private final Viewinfo viewinfo = new Viewinfo();
+    private final ViewInfo viewInfo = new ViewInfo();
 
     private final Matrix3x3Data colorMapData = new Matrix3x3Data();
 

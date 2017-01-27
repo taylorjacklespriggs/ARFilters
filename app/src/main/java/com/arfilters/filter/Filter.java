@@ -17,10 +17,10 @@
 
 package com.arfilters.filter;
 
-import com.arfilters.shader.Viewinfo;
+import com.arfilters.shader.ViewInfo;
 
 public interface Filter {
 
-    void draw(Viewinfo vi);
+    void draw(ViewInfo vi);
 
 }
