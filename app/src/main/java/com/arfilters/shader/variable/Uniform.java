@@ -4,11 +4,6 @@ import android.opengl.GLES20;
 
 import com.arfilters.shader.data.ShaderData;
 
-/**
- * Created by taylor on 1/20/17.
- */
-
-
 public class Uniform extends ShaderVariable {
 
     @Override
