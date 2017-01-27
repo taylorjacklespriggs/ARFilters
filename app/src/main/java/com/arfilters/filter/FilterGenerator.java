@@ -128,8 +128,6 @@ public class FilterGenerator {
 
     private final ViewInfo viewInfo = new ViewInfo();
 
-    private final Matrix3x3Data colorMapData = new Matrix3x3Data();
-
     private final FloatData threshData = new FloatData(.3f);
     private final FloatData strictData = new FloatData(20f);
 
