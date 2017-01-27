@@ -22,12 +22,12 @@ import com.google.vr.sdk.base.Eye;
 
 public class ViewInfo {
 
-    public void prepareShaderTextureTransformationMatrix(Shader sh, String transUniName) {
-        sh.addUniform(transUniName, textureTransformationMatrixData);
+    public void prepareShaderVertexTransformationMatrix(Shader sh, String transUniName) {
+        sh.addUniform(transUniName, vertexTransformationMatrix);
     }
 
-    public void updateTextureTransformationMatrix(float[] data) {
-        textureTransformationMatrixData.updateData(data);
+    public void updateVertexTransformationMatrix(float[] data) {
+        vertexTransformationMatrix.updateData(data);
     }
 
     public Eye getEye() {
@@ -43,10 +43,10 @@ public class ViewInfo {
     }
 
     private void init() {
-        textureTransformationMatrixData = new Matrix3x3Data();
+        vertexTransformationMatrix = new Matrix3x3Data();
     }
 
     private Eye eye;
-    private Matrix3x3Data textureTransformationMatrixData;
+    private Matrix3x3Data vertexTransformationMatrix;
 
 }

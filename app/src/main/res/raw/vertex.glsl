@@ -21,14 +21,14 @@
  *  matrix.
  */
 
-attribute vec4 a_Position;
-attribute vec3 a_TexCoord;
+attribute vec3 a_Position;
+attribute vec2 a_TexCoord;
 
-uniform mat3 u_TexCoordTransform;
+uniform mat3 u_VertexTransform;
 
 varying vec2 v_TexCoord;
 
 void main() {
-   v_TexCoord = (u_TexCoordTransform*a_TexCoord).xy;
-   gl_Position = a_Position;
+   v_TexCoord = a_TexCoord;
+   gl_Position = vec4((a_Position*u_VertexTransform).xy, 0., 1.);
 }

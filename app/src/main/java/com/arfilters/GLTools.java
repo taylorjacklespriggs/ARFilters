@@ -72,6 +72,7 @@ public class GLTools {
         }
 
         if (shader == 0) {
+            Log.e(TAG, raw);
             throw new RuntimeException("Error creating shader.");
         }
 

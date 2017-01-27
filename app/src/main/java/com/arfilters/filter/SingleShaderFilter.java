@@ -35,11 +35,11 @@ class SingleShaderFilter implements Filter {
         float Vh = vi.getEye().getViewport().height;
 
         float[] texTransformMat = new float[] {
-                Vw/Cw,          0,              0,
-                0,              Vh/Ch,          0,
-                (1f-Vw/Cw)/2f,  (1f-Vh/Ch)/2f,  1
+                Cw/Vw,          0,              0,
+                0,              Ch/Vh,          0,
+                (1f-Cw/Vw)/2f,  (1f-Ch/Vh)/2f,  1
         };
-        vi.updateTextureTransformationMatrix(texTransformMat);
+        vi.updateVertexTransformationMatrix(texTransformMat);
         shader.draw();
     }
 

@@ -48,8 +48,8 @@ public class FilterGenerator {
         sh.createVertices("a_Position", faceVertexData, "a_TexCoord",
                 faceTexCoordData, VertexData.FACE_NUMBER_VERTICES);
         sh.addUniform("u_Texture", cameraLocationData);
-        viewInfo.prepareShaderTextureTransformationMatrix(sh,
-                "u_TexCoordTransform");
+        viewInfo.prepareShaderVertexTransformationMatrix(sh,
+                "u_VertexTransform");
     }
 
     private Filter generateFilter(FilterType type) {

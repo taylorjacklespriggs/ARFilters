@@ -44,6 +44,7 @@ enum FilterType {
 
 
     INVERTED,
+    DISCRETE,
 
     GRAY_EDGES,
     GRADIENT_EDGES,
@@ -77,6 +78,7 @@ enum FilterType {
             case ANAGLYPH:
                 return FilterClass.COLOR_MAP;
             case INVERTED:
+            case DISCRETE:
                 return FilterClass.COLOR_MOD;
             case GRAY_EDGES:
             case GRADIENT_EDGES:
@@ -104,6 +106,8 @@ enum FilterType {
                 return R.raw.zoomed_texture_coordinates;
             case INVERTED:
                 return R.raw.inverted;
+            case DISCRETE:
+                return R.raw.discrete_color;
             case GRAY_EDGES:
                 return R.raw.grey_edges;
             case GRADIENT_EDGES:
