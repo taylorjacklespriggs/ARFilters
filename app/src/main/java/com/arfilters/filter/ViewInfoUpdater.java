@@ -17,25 +17,10 @@
 
 package com.arfilters.filter;
 
-import com.arfilters.shader.Shader;
-import com.arfilters.shader.data.Matrix3x3Data;
+import com.arfilters.shader.ViewInfo;
 
-class ColorMapFilter extends SingleShaderFilter {
+interface ViewInfoUpdater {
 
-    void updateColorMap(float[] colorMap) {
-        colorMapData.updateData(colorMap);
-    }
-
-    ColorMapFilter(Shader sh, ViewInfoUpdater viu) {
-        super(sh, viu);
-        init("u_ColorMapMatrix");
-    }
-
-    private void init(String uName) {
-        colorMapData = new Matrix3x3Data();
-        shader.addUniform(uName, colorMapData);
-    }
-
-    private Matrix3x3Data colorMapData;
+    void updateViewInfo(ViewInfo vi);
 
 }

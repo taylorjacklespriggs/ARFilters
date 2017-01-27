@@ -34,6 +34,8 @@ import com.taylorjs.hproject.arfilters.R;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import javax.microedition.khronos.opengles.GL10;
+
 public class FilterGenerator {
 
     public int getCameraTextureLocation() {
@@ -72,7 +74,7 @@ public class FilterGenerator {
             sh.addUniform("u_Threshold", threshData);
             sh.addUniform("u_Strictness", strictData);
         }
-        return new SingleShaderFilter(sh);
+        return new SingleShaderFilter(sh, eyeUpdate);
     }
 
     public Collection<Filter> generateFilters() {
@@ -86,6 +88,29 @@ public class FilterGenerator {
     private static final String TAG = "FilterGenerator";
 
     public FilterGenerator(ResourceLoader rl) {
+        eyeUpdate = new ViewInfoUpdater() {
+            @Override
+            public void updateViewInfo(ViewInfo vi) {
+                float scale = .6f;
+                float Cw = scale*1920;
+                float Ch = scale*1080;
+                float Vw = vi.getWidth();
+                float Vh = vi.getHeight();
+
+                float[] texTransformMat = new float[] {
+                        Cw/Vw,          0,              0,
+                        0,              Ch/Vh,          0,
+                        (1f-Cw/Vw)/2f,  (1f-Ch/Vh)/2f,  1
+                };
+                vi.updateVertexTransformationMatrix(texTransformMat);
+            }
+        };
+        plainUpdate = new ViewInfoUpdater() {
+            @Override
+            public void updateViewInfo(ViewInfo vi) {
+                vi.updateVertexTransformationMatrix(identity);
+            }
+        };
 
         int cameraVertexShader = GLTools.loadGLShader(TAG,
                 GLES20.GL_VERTEX_SHADER,
@@ -99,7 +124,8 @@ public class FilterGenerator {
 
         // Create texture for camera preview
         cameraTextureLocation = GLTools.genTexture(
-                GLES11Ext.GL_TEXTURE_EXTERNAL_OES);
+                GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_LINEAR,
+                GL10.GL_CLAMP_TO_EDGE);
 
         cameraLocationData = new TextureLocationData(0, cameraTextureLocation);
 
@@ -113,7 +139,7 @@ public class FilterGenerator {
                 .generateModifiedColorShader(R.raw.color_map, false);
         prepareShader(colShader);
 
-        colorMapFilter = new ColorMapFilter(colShader);
+        colorMapFilter = new ColorMapFilter(colShader, eyeUpdate);
     }
 
     private static final float[][] colorblindMaps = new float[][] {
@@ -157,9 +183,16 @@ public class FilterGenerator {
             {0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f}
     };
 
+    private static final float[] identity = new float[] {
+            1f, 0f, 0f,
+            0f, 1f, 0f,
+            0f, 0f, 1f
+    };
+
     private final ShaderGenerator initialPassShaderGenerator;
 
     private final ViewInfo viewInfo = new ViewInfo();
+    private final ViewInfoUpdater eyeUpdate, plainUpdate;
 
     private final FloatData threshData = new FloatData(.3f);
     private final FloatData strictData = new FloatData(20f);

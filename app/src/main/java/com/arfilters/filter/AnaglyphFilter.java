@@ -24,8 +24,8 @@ class AnaglyphFilter implements Filter {
 
     @Override
     public void draw(ViewInfo vi) {
-        switch(vi.getEye().getType()) {
-            case Eye.Type.RIGHT:
+        switch(vi.getViewType()) {
+            case LEFT_EYE:
                 colorMapFilter.updateColorMap(rightMap);
                 break;
             default:

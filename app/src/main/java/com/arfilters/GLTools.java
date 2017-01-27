@@ -25,6 +25,44 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class GLTools {
 
+    public static class Framebuffer {
+        private final int frameBufferID, textureID, renderBufferID;
+        private final int width, height;
+        protected Framebuffer(int w, int h, int interpolation, int wrapType) {
+            width = w;
+            height = h;
+            final int fbIdx = 0, texIdx = 1, rbIdx = 2;
+            int[] tmp = new int[3];
+            GLES20.glGenFramebuffers(1, tmp, fbIdx);
+            GLES20.glGenTextures(1, tmp, texIdx);
+            GLES20.glGenRenderbuffers(1, tmp, rbIdx);
+            frameBufferID = tmp[fbIdx];
+            textureID = tmp[texIdx];
+            renderBufferID = tmp[rbIdx];
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, tmp[fbIdx]);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, tmp[texIdx]);
+            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+            setTextureParameters(GLES20.GL_TEXTURE_2D, interpolation, wrapType);
+            GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, renderBufferID);
+            GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, textureID, 0);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+            GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, 0);
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+        }
+
+        public int getTextureID() {
+            return textureID;
+        }
+
+        public int getWidth() {
+            return width;
+        }
+
+        public int getHeight() {
+            return height;
+        }
+    }
+
     public static void checkGLError(String TAG, String label) {
         int error;
         if ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
@@ -33,24 +71,21 @@ public class GLTools {
         }
     }
 
-    public static int genTexture(int textureType) {
+    private static void setTextureParameters(int textureType, int interpolation, int wrapType) {
+
+        GLES20.glTexParameterf(textureType, GL10.GL_TEXTURE_MIN_FILTER, interpolation);
+        GLES20.glTexParameterf(textureType, GL10.GL_TEXTURE_MAG_FILTER, interpolation);
+        GLES20.glTexParameteri(textureType, GL10.GL_TEXTURE_WRAP_S, wrapType);
+        GLES20.glTexParameteri(textureType, GL10.GL_TEXTURE_WRAP_T, wrapType);
+
+    }
+
+    public static int genTexture(int textureType, int interpolation, int wrapType) {
         int[] genBuf = new int[1];
         GLES20.glGenTextures(1, genBuf, 0);
         GLES20.glBindTexture(textureType, genBuf[0]);
 
-        // Set texture default draw parameters
-        if (textureType == GLES11Ext.GL_TEXTURE_EXTERNAL_OES) {
-            GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
-            GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
-            GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_TEXTURE_WRAP_S, GL10.GL_CLAMP_TO_EDGE);
-            GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_TEXTURE_WRAP_T, GL10.GL_CLAMP_TO_EDGE);
-
-        } else {
-            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
-            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
-            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_S, GL10.GL_REPEAT);
-            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_T, GL10.GL_REPEAT);
-        }
+        setTextureParameters(textureType, interpolation, wrapType);
 
         return genBuf[0];
     }

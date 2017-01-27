@@ -17,10 +17,29 @@
 
 package com.arfilters.shader;
 
+import android.support.annotation.NonNull;
+
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.google.vr.sdk.base.Eye;
 
 public class ViewInfo {
+
+    public enum ViewType {
+        LEFT_EYE,
+        RIGHT_EYE,
+        MONOCULAR;
+
+        public static ViewType getType(int eyeType) {
+            switch(eyeType) {
+                case Eye.Type.LEFT:
+                    return LEFT_EYE;
+                case Eye.Type.RIGHT:
+                    return RIGHT_EYE;
+                default:
+                    return MONOCULAR;
+            }
+        }
+    }
 
     public void prepareShaderVertexTransformationMatrix(Shader sh, String transUniName) {
         sh.addUniform(transUniName, vertexTransformationMatrix);
@@ -30,12 +49,34 @@ public class ViewInfo {
         vertexTransformationMatrix.updateData(data);
     }
 
-    public Eye getEye() {
-        return eye;
+    public void setEye(Eye eye) {
+        setViewType(ViewInfo.ViewType.getType(eye.getType()));
+        setWidth(eye.getViewport().width);
+        setHeight(eye.getViewport().height);
     }
 
-    public void setEye(Eye e) {
-        eye = e;
+    public void setViewType(@NonNull ViewType vt) {
+        viewType = vt;
+    }
+
+    public void setWidth(int w) {
+        width = w;
+    }
+
+    public void setHeight(int h) {
+        height = h;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public ViewType getViewType() {
+        return viewType;
     }
 
     public ViewInfo() {
@@ -46,7 +87,8 @@ public class ViewInfo {
         vertexTransformationMatrix = new Matrix3x3Data();
     }
 
-    private Eye eye;
+    private ViewType viewType;
+    private int width, height;
     private Matrix3x3Data vertexTransformationMatrix;
 
 }

@@ -59,7 +59,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
 
     private int cameraTextureLocation;
 
-    private ViewInfo viewinfo;
+    private ViewInfo viewInfo;
 
     private Camera hardwareCamera;
     private SurfaceTexture cameraSurfaceTexture;
@@ -180,7 +180,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
 
         FilterGenerator filterGenerator = new FilterGenerator(resourceLoader);
 
-        viewinfo = filterGenerator.getViewInfo();
+        viewInfo = filterGenerator.getViewInfo();
 
         // Create texture for camera preview
         cameraTextureLocation = filterGenerator.getCameraTextureLocation();
@@ -227,13 +227,13 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
 
     @Override
     public void onDrawEye(Eye eye) {
-        viewinfo.setEye(eye);
+        viewInfo.setEye(eye);
         if(hardwareCamera != null) {
             if(cameraSurfaceTexture == null) {
                 initGL();
             }
 
-            currentFilter.draw(viewinfo);
+            currentFilter.draw(viewInfo);
         }
     }
 

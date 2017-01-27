@@ -22,27 +22,18 @@ import com.arfilters.shader.ViewInfo;
 
 class SingleShaderFilter implements Filter {
 
-    SingleShaderFilter(Shader sh) {
+    SingleShaderFilter(Shader sh, ViewInfoUpdater viu) {
         shader = sh;
+        viewInfoUpdater = viu;
     }
 
     @Override
     public void draw(ViewInfo vi) {
-        float scale = .6f;
-        float Cw = scale*1920;
-        float Ch = scale*1080;
-        float Vw = vi.getEye().getViewport().width;
-        float Vh = vi.getEye().getViewport().height;
-
-        float[] texTransformMat = new float[] {
-                Cw/Vw,          0,              0,
-                0,              Ch/Vh,          0,
-                (1f-Cw/Vw)/2f,  (1f-Ch/Vh)/2f,  1
-        };
-        vi.updateVertexTransformationMatrix(texTransformMat);
+        viewInfoUpdater.updateViewInfo(vi);
         shader.draw();
     }
 
     protected final Shader shader;
+    private final ViewInfoUpdater viewInfoUpdater;
 
 }
