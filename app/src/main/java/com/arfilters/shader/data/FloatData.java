@@ -19,15 +19,15 @@ package com.arfilters.shader.data;
 
 import android.opengl.GLES20;
 
-public class FloatData extends ShaderData<Float> {
+public class FloatData implements ShaderData<Float> {
 
     @Override
-    protected void doDataUpdate(Float val) {
+    public void updateData(Float val) {
         value = val;
     }
 
     @Override
-    protected void doUniformUpdate(int location) {
+    public void updateLocation(int location) {
         GLES20.glUniform1f(location, value);
     }
 

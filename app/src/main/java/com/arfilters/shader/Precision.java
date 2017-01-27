@@ -17,10 +17,6 @@
 
 package com.arfilters.shader;
 
-/**
- * Created by taylor on 1/24/17.
- */
-
 public enum Precision {
 
     LOW,

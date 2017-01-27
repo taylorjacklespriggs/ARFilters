@@ -19,15 +19,12 @@ package com.arfilters.filter;
 
 import com.arfilters.shader.ViewInfo;
 
-/**
- * Created by taylor on 1/26/17.
- */
-
-public class HueRotationFilter implements Filter {
+class HueRotationFilter implements Filter {
 
     @Override
     public void draw(ViewInfo vi) {
-        colorMapFilter.updateColorMap(computeMatrix((float)((count++)*2*Math.PI/loopFrames)));
+        colorMapFilter.updateColorMap(
+                computeMatrix((float)((count++)*2*Math.PI/loopFrames)));
         colorMapFilter.draw(vi);
     }
 
@@ -35,28 +32,35 @@ public class HueRotationFilter implements Filter {
     private int count;
     private final int loopFrames;
 
-    public HueRotationFilter(ColorMapFilter cmf, int loop) {
+    HueRotationFilter(ColorMapFilter cmf, int loop) {
         colorMapFilter = cmf;
         count = 0;
         loopFrames = loop;
     }
 
-    private float[] computeMatrix(float hueangle) {
-        float lr=0.213f;
-        float lg=0.715f;
-        float lb=0.072f;
-        float a=0.143f;
-        float b=0.140f;
-        float c=-0.283f;
-        float cos=(float)Math.cos(hueangle);
-        float sin=(float)Math.sin(hueangle);
+    private float[] computeMatrix(float hueAngle) {
+        float lr, lg, lb, a, b, c, cos, sin;
+        lr=0.213f;
+        lg=0.715f;
+        lb=0.072f;
+        a=0.143f;
+        b=0.140f;
+        c=-0.283f;
+        cos=(float)Math.cos(hueAngle);
+        sin=(float)Math.sin(hueAngle);
         return new float[]{
 
-                lr + cos * (1 - lr) + sin * (-lr), lg + cos * (-lg) + sin * (-lg), lb + (float)Math.cos(-lb) + sin * (1 - lb),
+                lr + cos * (1 - lr) + sin * (-lr),
+                lg + cos * (-lg) + sin * (-lg),
+                lb + (float)Math.cos(-lb) + sin * (1 - lb),
 
-                lr + cos * (-lr) + sin * (a), lg + cos * (1 - lg) + sin * (b), lb + (float)Math.cos(-lb) + sin * (c),
+                lr + cos * (-lr) + sin * (a),
+                lg + cos * (1 - lg) + sin * (b),
+                lb + (float)Math.cos(-lb) + sin * (c),
 
-                lr + cos * (-lr) + sin * (-(1 - lr)), lg + cos * (-lg) + sin * (lg), lb + (float)Math.cos(1 - lb) + sin * (lb),
+                lr + cos * (-lr) + sin * (-(1 - lr)),
+                lg + cos * (-lg) + sin * (lg),
+                lb + (float)Math.cos(1 - lb) + sin * (lb),
 
         };
     }

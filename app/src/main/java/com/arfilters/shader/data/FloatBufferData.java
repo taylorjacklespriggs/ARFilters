@@ -21,23 +21,22 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
-public abstract class FloatBufferData extends ShaderData<float[]> {
+abstract class FloatBufferData implements ShaderData<float[]> {
 
     @Override
-    protected void doDataUpdate(float[] vals) {
-        assert(vals.length == length);
+    public void updateData(float[] vals) {
         buffer.put(vals);
         buffer.position(0);
     }
 
-    public FloatBufferData(int count) {
+    FloatBufferData(int count) {
         length = count;
         ByteBuffer bb = ByteBuffer.allocateDirect(length*4);
         bb.order(ByteOrder.nativeOrder());
         buffer = bb.asFloatBuffer();
     }
 
-    protected final FloatBuffer buffer;
-    public final int length;
+    final FloatBuffer buffer;
+    final int length;
 
 }

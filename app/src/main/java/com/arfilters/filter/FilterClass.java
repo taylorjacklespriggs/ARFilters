@@ -17,7 +17,7 @@
 
 package com.arfilters.filter;
 
-public enum FilterClass {
+enum FilterClass {
     PLAIN,
     COLOR_MAP,
     TEXTURE_WARP,

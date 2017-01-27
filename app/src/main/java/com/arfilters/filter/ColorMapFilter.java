@@ -20,30 +20,15 @@ package com.arfilters.filter;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.data.Matrix3x3Data;
 
-public class ColorMapFilter extends SingleShaderFilter {
+class ColorMapFilter extends SingleShaderFilter {
 
-    public void updateColorMap(float[] colorMap) {
+    void updateColorMap(float[] colorMap) {
         colorMapData.updateData(colorMap);
     }
 
-    public ColorMapFilter(Shader sh) {
+    ColorMapFilter(Shader sh) {
         super(sh);
         init("u_ColorMapMatrix", null);
-    }
-
-    public ColorMapFilter(Shader sh, String uName) {
-        super(sh);
-        init(uName, null);
-    }
-
-    public ColorMapFilter(Shader sh, float[] data) {
-        super(sh);
-        init("u_ColorMapMatrix", data);
-    }
-
-    public ColorMapFilter(Shader sh, String uName, float[] data) {
-        super(sh);
-        init(uName, data);
     }
 
     private void init(String uName, float[] data) {

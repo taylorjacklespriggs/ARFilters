@@ -43,7 +43,7 @@ public class ResourceLoader {
         return null;
     }
 
-    public ResourceLoader(Context ctx) {
+    ResourceLoader(Context ctx) {
         context = ctx;
     }
 

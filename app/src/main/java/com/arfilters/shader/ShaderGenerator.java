@@ -24,19 +24,21 @@ import com.arfilters.ResourceLoader;
 
 public class ShaderGenerator {
 
-    public static final String TAG = "ShaderGenerator";
+    private static final String TAG = "ShaderGenerator";
 
     public Shader generateDefaultShader() {
         return generateShader(getTextureFragmentString, getTextureCoordinatesString,
                 computeColorString, mainString, useCamera, useDerivatives, floatPrecision);
     }
 
+    /*
     public Shader generateModifiedTextureFragmentShader(int getTextureFragmentID,
                                                         boolean useCamera) {
         return generateShader(resourceLoader.readRawTextFile(getTextureFragmentID),
                 this.getTextureCoordinatesString, this.computeColorString, this.mainString,
                 useCamera, this.useDerivatives, this.floatPrecision);
     }
+    */
 
     public Shader generateModifiedTextureCoordinatesShader(int getTextureCoordinatesID,
                                                            Precision floatPrecision) {
@@ -51,11 +53,13 @@ public class ShaderGenerator {
                 this.mainString, this.useCamera, useDerivatives, this.floatPrecision);
     }
 
+    /*
     public Shader generateModifiedMainShader(int mainID) {
         return generateShader(this.getTextureFragmentString, this.getTextureCoordinatesString,
                 this.computeColorString, resourceLoader.readRawTextFile(mainID), this.useCamera,
                 useDerivatives, this.floatPrecision);
     }
+    */
 
     public ShaderGenerator(ResourceLoader rl, int vertexShader, String getTextureFragmentString,
                            String getTextureCoordinatesString, String computeColorString,

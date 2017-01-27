@@ -20,7 +20,7 @@ package com.arfilters.filter;
 import com.arfilters.shader.ViewInfo;
 import com.google.vr.sdk.base.Eye;
 
-public class AnaglyphFilter implements Filter {
+class AnaglyphFilter implements Filter {
 
     @Override
     public void draw(ViewInfo vi) {
@@ -35,7 +35,7 @@ public class AnaglyphFilter implements Filter {
         colorMapFilter.draw(vi);
     }
 
-    public AnaglyphFilter(ColorMapFilter cmf, float[] left, float[] right) {
+    AnaglyphFilter(ColorMapFilter cmf, float[] left, float[] right) {
         colorMapFilter = cmf;
         leftMap = left;
         rightMap = right;

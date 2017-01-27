@@ -24,19 +24,15 @@ import android.graphics.Rect;
 import android.opengl.GLES20;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import com.arfilters.filter.Filter;
 import com.arfilters.filter.FilterGenerator;
-import com.arfilters.shader.Shader;
-import com.arfilters.shader.ShaderGenerator;
 import com.arfilters.shader.ViewInfo;
-import com.arfilters.shader.data.FloatData;
-import com.arfilters.shader.data.Matrix3x3Data;
-import com.arfilters.shader.data.TextureLocationData;
-import com.arfilters.shader.data.VertexAttributeData;
+
 import com.google.vr.sdk.base.AndroidCompat;
 import com.google.vr.sdk.base.Eye;
 import com.google.vr.sdk.base.GvrActivity;
@@ -69,9 +65,6 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
     private SurfaceTexture cameraSurfaceTexture;
 
     private Vibrator vibrator;
-
-    private ResourceLoader resourceLoader;
-    private FilterGenerator filterGenerator;
     private Collection<Filter> filters;
     private Iterator<Filter> filterIterator;
     private Filter currentFilter;
@@ -166,7 +159,8 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
         } catch (IOException ioe) {
             Log.e(TAG, "Some problem while starting camera preview: "+ioe);
             ioe.printStackTrace();
-            Toast.makeText(this, "Could not open camera!", Toast.LENGTH_LONG);
+            Toast.makeText(this, "Could not open camera!", Toast.LENGTH_LONG)
+                    .show();
         }
     }
 
@@ -182,9 +176,9 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
 
         GLES20.glClearColor(0.1f, 0.1f, 0.1f, 0.5f); // Dark background so text shows up well.
 
-        resourceLoader = new ResourceLoader(this);
+        ResourceLoader resourceLoader = new ResourceLoader(this);
 
-        filterGenerator = new FilterGenerator(resourceLoader);
+        FilterGenerator filterGenerator = new FilterGenerator(resourceLoader);
 
         viewinfo = filterGenerator.getViewInfo();
 
@@ -208,7 +202,9 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String permissions[],
+                                           @NonNull int[] grantResults) {
         switch (requestCode) {
             case 101: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -220,7 +216,6 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
 
     @Override
     public void onNewFrame(HeadTransform headTransform) {
-        viewinfo.setHeadTransform(headTransform);
 
         if(cameraSurfaceTexture != null) {
             // Update the camera preview texture

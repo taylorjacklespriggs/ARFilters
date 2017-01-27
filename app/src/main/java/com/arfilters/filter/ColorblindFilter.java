@@ -19,7 +19,7 @@ package com.arfilters.filter;
 
 import com.arfilters.shader.ViewInfo;
 
-public class ColorblindFilter implements Filter {
+class ColorblindFilter implements Filter {
 
     @Override
     public void draw(ViewInfo vi) {
@@ -27,7 +27,7 @@ public class ColorblindFilter implements Filter {
         colorMapFilter.draw(vi);
     }
 
-    public ColorblindFilter(ColorMapFilter cmf, float[] cbMap) {
+    ColorblindFilter(ColorMapFilter cmf, float[] cbMap) {
         colorMapFilter = cmf;
         colorMap = cbMap;
     }

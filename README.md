@@ -1,6 +1,6 @@
 ## Synopsis
 
-ARFilters is an Android implementation of real-time camera filters for Android VR. Just aquire a Google Cardboard viewer or some other VR viewer for Android and your vision should be augmented with shaders in real-time provided your hardware is fast enough. Note that you may need to modify your viewer in order to ensure that the rear-facing camera is not obstructed. If your viewer's trigger does not work then you will have to tap the screen of your device to switch filters.
+ARFilters is an Android implementation of real-time camera filters for Android VR. Just acquire a Google Cardboard viewer or some other VR viewer for Android and your vision should be augmented with shaders in real-time provided your hardware is fast enough. Note that you may need to modify your viewer in order to ensure that the rear-facing camera is not obstructed. Tapping the screen will emulate the cardboard trigger.
 
 ## Motivation
 

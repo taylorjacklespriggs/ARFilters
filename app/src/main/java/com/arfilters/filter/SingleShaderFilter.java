@@ -20,9 +20,9 @@ package com.arfilters.filter;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.ViewInfo;
 
-public class SingleShaderFilter implements Filter {
+class SingleShaderFilter implements Filter {
 
-    public SingleShaderFilter(Shader sh) {
+    SingleShaderFilter(Shader sh) {
         shader = sh;
     }
 

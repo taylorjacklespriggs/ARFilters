@@ -20,21 +20,17 @@ package com.arfilters.shader;
 import android.opengl.GLES20;
 
 import com.arfilters.GLTools;
-import com.arfilters.shader.data.IntegerData;
 import com.arfilters.shader.data.ShaderData;
-import com.arfilters.shader.data.TextureLocationData;
 import com.arfilters.shader.data.VertexAttributeData;
 import com.arfilters.shader.variable.Attribute;
 import com.arfilters.shader.variable.ShaderVariable;
 import com.arfilters.shader.variable.Uniform;
 
-import java.nio.FloatBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Shader {
 
-    public static final String TAG = "Shader";
+    private static final String TAG = "Shader";
 
     public void addUniform(String name, ShaderData data) {
         uniforms.put(name, new Uniform(name, finalProgram, data));

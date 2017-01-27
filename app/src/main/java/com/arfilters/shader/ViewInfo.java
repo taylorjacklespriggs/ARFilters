@@ -19,7 +19,6 @@ package com.arfilters.shader;
 
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.google.vr.sdk.base.Eye;
-import com.google.vr.sdk.base.HeadTransform;
 
 public class ViewInfo {
 
@@ -29,14 +28,6 @@ public class ViewInfo {
 
     public void updateTextureTransformationMatrix(float[] data) {
         textureTransformationMatrixData.updateData(data);
-    }
-
-    public HeadTransform getHeadTransform() {
-        return headTransform;
-    }
-
-    public void setHeadTransform(HeadTransform ht) {
-        headTransform = ht;
     }
 
     public Eye getEye() {
@@ -51,17 +42,11 @@ public class ViewInfo {
         init();
     }
 
-    public ViewInfo(float[] texTrans) {
-        init();
-        updateTextureTransformationMatrix(texTrans);
-    }
-
     private void init() {
         textureTransformationMatrixData = new Matrix3x3Data();
     }
 
     private Eye eye;
-    private HeadTransform headTransform;
     private Matrix3x3Data textureTransformationMatrixData;
 
 }

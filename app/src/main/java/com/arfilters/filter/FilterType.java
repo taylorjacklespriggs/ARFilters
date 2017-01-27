@@ -17,13 +17,11 @@
 
 package com.arfilters.filter;
 
-import android.util.Log;
-
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.ShaderGenerator;
 import com.taylorjs.hproject.arfilters.R;
 
-public enum FilterType {
+enum FilterType {
 
     PASS_THROUGH,
 
