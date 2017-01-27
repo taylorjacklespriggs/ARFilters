@@ -54,28 +54,24 @@ public class FilterGenerator {
     }
 
     public Filter generateFilter(FilterType type) {
+        if(type.isColorblindType()) {
+            return new ColorblindFilter(colorMapFilter, colorblindMaps[type.getColorblindIndex()]);
+        }
+
         switch(type) {
             case ANAGLYPH:
                 return new AnaglyphFilter(colorMapFilter, anaglyphMaps[0], anaglyphMaps[1]);
             case HUE_ROTATION:
                 return new HueRotationFilter(colorMapFilter, 600);
-            case PASS_THROUGH:
-            case ZOOM:
-            case GRAY_EDGES:
-                Shader sh = type.generateShader(initialPassShaderGenerator);
-                prepareShader(sh);
-                if(type.getClassType() == FilterClass.EDGES) {
-                    sh.addUniform("u_Threshold", threshData);
-                    sh.addUniform("u_Strictness", strictData);
-                }
-                return new SingleShaderFilter(sh);
-        }
-        if(type.isColorblindType()) {
-            return new ColorblindFilter(colorMapFilter, colorblindMaps[type.getColorblindIndex()]);
         }
 
-        Log.e(TAG, "no filter for "+type);
-        throw new RuntimeException("Could not generate the filter for "+type);
+        Shader sh = type.generateShader(initialPassShaderGenerator);
+        prepareShader(sh);
+        if(type.getClassType() == FilterClass.EDGES) {
+            sh.addUniform("u_Threshold", threshData);
+            sh.addUniform("u_Strictness", strictData);
+        }
+        return new SingleShaderFilter(sh);
     }
 
     public Collection<Filter> generateFilters() {

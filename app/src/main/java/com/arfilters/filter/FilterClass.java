@@ -22,5 +22,6 @@ public enum FilterClass {
     COLOR_MAP,
     TEXTURE_WARP,
     EDGES,
+    COLOR_MOD,
     UNKNOWN
 }

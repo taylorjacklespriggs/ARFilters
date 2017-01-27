@@ -31,9 +31,10 @@ public enum FilterType {
     ZOOM,
 
 
-    HUE_ROTATION,
-
     ANAGLYPH,
+
+
+    HUE_ROTATION,
     PROTANOPIA,
     PROTANOMALY,
     DEUTERANOPIA,
@@ -44,7 +45,12 @@ public enum FilterType {
     ACHROMATOMALY,
 
 
-    GRAY_EDGES;
+    INVERTED,
+
+    GRAY_EDGES,
+    GRADIENT_EDGES,
+    ENHANCED_EDGES,
+    TOON;
 
     public Shader generateShader(ShaderGenerator sg) {
         switch(getClassType()) {
@@ -55,8 +61,9 @@ public enum FilterType {
                 return sg.generateModifiedTextureCoordinatesShader(
                         getFSResourceID(), com.arfilters.shader.Precision.HIGH);
             case EDGES:
-                return sg.generateModifiedColorShader(
-                        getFSResourceID(), true);
+                return sg.generateModifiedColorShader(getFSResourceID(), true);
+            case COLOR_MOD:
+                return sg.generateModifiedColorShader(getFSResourceID(), false);
             default:
                 return sg.generateDefaultShader();
         }
@@ -66,13 +73,18 @@ public enum FilterType {
         switch(this) {
             case PASS_THROUGH:
                 return FilterClass.PLAIN;
+            case ZOOM:
+                return FilterClass.TEXTURE_WARP;
             case HUE_ROTATION:
             case ANAGLYPH:
                 return FilterClass.COLOR_MAP;
+            case INVERTED:
+                return FilterClass.COLOR_MOD;
             case GRAY_EDGES:
+            case GRADIENT_EDGES:
+            case ENHANCED_EDGES:
+            case TOON:
                 return FilterClass.EDGES;
-            case ZOOM:
-                return FilterClass.TEXTURE_WARP;
         }
 
         if(isColorblindType()) {
@@ -88,12 +100,20 @@ public enum FilterType {
         }
 
         switch(this) {
-            case GRAY_EDGES:
-                return R.raw.grey_edges;
-            case ZOOM:
-                return R.raw.zoomed_texture_coordinates;
             case PASS_THROUGH:
                 return R.raw.passthrough;
+            case ZOOM:
+                return R.raw.zoomed_texture_coordinates;
+            case INVERTED:
+                return R.raw.inverted;
+            case GRAY_EDGES:
+                return R.raw.grey_edges;
+            case GRADIENT_EDGES:
+                return R.raw.gradient_edges;
+            case ENHANCED_EDGES:
+                return R.raw.enhanced_edges;
+            case TOON:
+                return R.raw.toon;
         }
 
         throw new RuntimeException("FS resource undefined for filter "+this);
