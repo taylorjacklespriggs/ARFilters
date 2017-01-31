@@ -18,8 +18,13 @@
 package com.arfilters.shader.data;
 
 import android.opengl.GLES20;
+import android.util.Log;
+
+import java.text.MessageFormat;
 
 public class FloatData implements ShaderData<Float> {
+
+    private static final String TAG = "FloatData";
 
     @Override
     public void updateData(Float val) {

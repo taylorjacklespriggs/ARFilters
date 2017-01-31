@@ -19,8 +19,13 @@ package com.arfilters.shader.data;
 
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
+import android.util.Log;
+
+import java.text.MessageFormat;
 
 public class TextureLocationData implements ShaderData<Integer> {
+
+    private static final String TAG = "TextureLocationData";
 
     @Override
     public void updateData(Integer texNum) {
@@ -29,16 +34,22 @@ public class TextureLocationData implements ShaderData<Integer> {
 
     @Override
     public void updateLocation(int location) {
+
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + textureNumber);
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureLocation);
+
+        GLES20.glBindTexture(textureType, textureLocation);
+
         GLES20.glUniform1i(location, textureNumber);
+
     }
 
-    public TextureLocationData(int texNum, int texLoc) {
+    public TextureLocationData(int texType, int texNum, int texLoc) {
+        textureType = texType;
         textureNumber = texNum;
         textureLocation = texLoc;
     }
 
+    private int textureType;
     private int textureNumber;
     private int textureLocation;
 

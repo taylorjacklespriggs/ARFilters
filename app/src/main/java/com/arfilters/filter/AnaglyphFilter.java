@@ -17,31 +17,27 @@
 
 package com.arfilters.filter;
 
+import com.arfilters.shader.Shader;
 import com.arfilters.shader.ViewInfo;
+import com.arfilters.shader.data.Matrix3x3Data;
 import com.google.vr.sdk.base.Eye;
 
-class AnaglyphFilter implements Filter {
+class AnaglyphFilter extends ColorMapFilter {
 
     @Override
-    public void draw(ViewInfo vi) {
-        switch(vi.getViewType()) {
-            case LEFT_EYE:
-                colorMapFilter.updateColorMap(rightMap);
-                break;
-            default:
-                colorMapFilter.updateColorMap(leftMap);
-                break;
-        }
-        colorMapFilter.draw(vi);
+    public void drawEye(ViewInfo vi) {
+        updateColorMap((vi.getEyeType() == Eye.Type.LEFT) ? leftMap : rightMap);
+        super.drawEye(vi);
     }
 
-    AnaglyphFilter(ColorMapFilter cmf, float[] left, float[] right) {
-        colorMapFilter = cmf;
+    AnaglyphFilter(Shader cMapShader, Matrix3x3Data vertMat,
+                   VertexMatrixUpdater vmi, Matrix3x3Data colorMapMatrix,
+                   float[] left, float[] right) {
+        super(cMapShader, vertMat, vmi, colorMapMatrix);
         leftMap = left;
         rightMap = right;
     }
 
-    private ColorMapFilter colorMapFilter;
-    private float[] leftMap, rightMap;
+    private final float[] leftMap, rightMap;
 
 }

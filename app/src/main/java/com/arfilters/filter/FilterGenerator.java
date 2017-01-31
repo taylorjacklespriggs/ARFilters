@@ -25,8 +25,10 @@ import com.arfilters.ResourceLoader;
 import com.arfilters.VertexData;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.ShaderGenerator;
+import com.arfilters.shader.ShaderInitializer;
 import com.arfilters.shader.ViewInfo;
 import com.arfilters.shader.data.FloatData;
+import com.arfilters.shader.data.Matrix3x3Data;
 import com.arfilters.shader.data.TextureLocationData;
 import com.arfilters.shader.data.VertexAttributeData;
 import com.taylorjs.hproject.arfilters.R;
@@ -38,6 +40,8 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class FilterGenerator {
 
+    public static final int WIDTH = 1920, HEIGHT = 1080;
+
     public int getCameraTextureLocation() {
         return cameraTextureLocation;
     }
@@ -46,39 +50,59 @@ public class FilterGenerator {
         return viewInfo;
     }
 
-    private void prepareShader(Shader sh) {
-        sh.createVertices("a_Position", faceVertexData, "a_TexCoord",
-                faceTexCoordData, VertexData.FACE_NUMBER_VERTICES);
-        sh.addUniform("u_Texture", cameraLocationData);
-        viewInfo.prepareShaderVertexTransformationMatrix(sh,
-                "u_VertexTransform");
+    private ShaderInitializer getInitializer(FilterClass cls) {
+        switch(cls) {
+            case PLAIN:
+            case TEXTURE_WARP:
+                return defaultShaderInitializer;
+            case COLOR_MAP:
+                return colorMapShaderInitializer;
+            case EDGES:
+                return edgeShaderInitializer;
+        }
+        return defaultShaderInitializer;
     }
 
     private Filter generateFilter(FilterType type) {
         if(type.isColorblindType()) {
-            return new ColorblindFilter(colorMapFilter,
+            return new ColorblindFilter(
+                    colorMapShader,
+                    vertexMatrixData,
+                    eyeUpdate,
+                    colorMapMatrixData,
                     colorblindMaps[type.getColorblindIndex()]);
         }
 
         switch(type) {
             case ANAGLYPH:
-                return new AnaglyphFilter(colorMapFilter, anaglyphMaps[0],
+                return new AnaglyphFilter(
+                        colorMapShader,
+                        vertexMatrixData,
+                        eyeUpdate,
+                        colorMapMatrixData,
+                        anaglyphMaps[0],
                         anaglyphMaps[1]);
             case HUE_ROTATION:
-                return new HueRotationFilter(colorMapFilter, 600);
+                return new HueRotationFilter(
+                        colorMapShader,
+                        vertexMatrixData,
+                        eyeUpdate,
+                        colorMapMatrixData, 600);
         }
 
-        Shader sh = type.generateShader(initialPassShaderGenerator);
-        prepareShader(sh);
-        if(type.getClassType() == FilterClass.EDGES) {
-            sh.addUniform("u_Threshold", threshData);
-            sh.addUniform("u_Strictness", strictData);
-        }
-        return new SingleShaderFilter(sh, eyeUpdate);
+        shaderGenerator.setInitializer((type.getClassType() == FilterClass.EDGES) ? edgeShaderInitializer : defaultShaderInitializer);
+
+        Shader sh = type.generateShader(shaderGenerator);
+        return new SingleShaderFilter(sh, vertexMatrixData, eyeUpdate);
+    }
+
+    private Filter generateExperimentalFilter() {
+        return null;
     }
 
     public Collection<Filter> generateFilters() {
         ArrayList<Filter> filters = new ArrayList<>();
+        //filters.add(generateExperimentalFilter());
         for(FilterType ft: FilterType.values()) {
             filters.add(generateFilter(ft));
         }
@@ -87,59 +111,76 @@ public class FilterGenerator {
 
     private static final String TAG = "FilterGenerator";
 
+    private ShaderInitializer genShaderInit() {
+        ShaderInitializer si = new ShaderInitializer("a_Position",
+                faceVertexData, "a_TexCoord", faceTexCoordData,
+                VertexData.FACE_NUMBER_VERTICES);
+        si.addUniform("u_VertexTransform", vertexMatrixData);
+        si.addUniform("u_Texture", cameraLocationData);
+        return si;
+    }
+
     public FilterGenerator(ResourceLoader rl) {
-        eyeUpdate = new ViewInfoUpdater() {
+
+        eyeUpdate = new VertexMatrixUpdater() {
             @Override
-            public void updateViewInfo(ViewInfo vi) {
+            public float[] updateVertexMatrix(ViewInfo vi) {
                 float scale = .6f;
-                float Cw = scale*1920;
-                float Ch = scale*1080;
+                float Cw = scale*WIDTH;
+                float Ch = scale*HEIGHT;
                 float Vw = vi.getWidth();
                 float Vh = vi.getHeight();
 
-                float[] texTransformMat = new float[] {
-                        Cw/Vw,          0,              0,
-                        0,              Ch/Vh,          0,
-                        (1f-Cw/Vw)/2f,  (1f-Ch/Vh)/2f,  1
+                return new float[]{
+                        Cw / Vw, 0, 0,
+                        0, -Ch / Vh, 0,
+                        (1f - Cw / Vw) / 2f, (1f - Ch / Vh) / 2f, 1
                 };
-                vi.updateVertexTransformationMatrix(texTransformMat);
-            }
-        };
-        plainUpdate = new ViewInfoUpdater() {
-            @Override
-            public void updateViewInfo(ViewInfo vi) {
-                vi.updateVertexTransformationMatrix(identity);
             }
         };
 
         int cameraVertexShader = GLTools.loadGLShader(TAG,
                 GLES20.GL_VERTEX_SHADER,
                 rl.readRawTextFile(R.raw.vertex));
-        initialPassShaderGenerator = new ShaderGenerator(rl, cameraVertexShader,
+        shaderGenerator = new ShaderGenerator(rl, cameraVertexShader,
                 rl.readRawTextFile(R.raw.camera_texture),
                 rl.readRawTextFile(R.raw.default_texture_coordinates),
                 rl.readRawTextFile(R.raw.passthrough),
                 rl.readRawTextFile(R.raw.fs_main), true, false,
                 com.arfilters.shader.Precision.MEDIUM);
 
+        frameBuffer = new GLTools.FrameBuffer(WIDTH, HEIGHT, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
+
+        vertexMatrixData = new Matrix3x3Data();
+        colorMapMatrixData = new Matrix3x3Data();
+
+        GLTools.checkGLError(TAG, "gen framebuffer");
+
         // Create texture for camera preview
         cameraTextureLocation = GLTools.genTexture(
                 GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_LINEAR,
                 GL10.GL_CLAMP_TO_EDGE);
 
-        cameraLocationData = new TextureLocationData(0, cameraTextureLocation);
+        cameraLocationData = new TextureLocationData(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0, cameraTextureLocation);
 
         faceVertexData.updateData(VertexData.FACE_COORDS);
 
         faceTexCoordData.updateData(VertexData.FACE_TEX_COORDS);
 
+        defaultShaderInitializer = genShaderInit();
+
+        edgeShaderInitializer = genShaderInit();
+        edgeShaderInitializer.addUniform("u_Threshold", threshData);
+        edgeShaderInitializer.addUniform("u_Strictness", strictData);
+
+        colorMapShaderInitializer = genShaderInit();
+        colorMapShaderInitializer.addUniform("u_ColorMapMatrix", colorMapMatrixData);
+
         GLTools.checkGLError(TAG, "initGL");
 
-        Shader colShader = initialPassShaderGenerator
+        shaderGenerator.setInitializer(colorMapShaderInitializer);
+        colorMapShader = shaderGenerator
                 .generateModifiedColorShader(R.raw.color_map, false);
-        prepareShader(colShader);
-
-        colorMapFilter = new ColorMapFilter(colShader, eyeUpdate);
     }
 
     private static final float[][] colorblindMaps = new float[][] {
@@ -189,10 +230,17 @@ public class FilterGenerator {
             0f, 0f, 1f
     };
 
-    private final ShaderGenerator initialPassShaderGenerator;
+    private final Shader colorMapShader;
+
+    private final ShaderGenerator shaderGenerator;
+    private final ShaderInitializer defaultShaderInitializer, edgeShaderInitializer, colorMapShaderInitializer;
+
+    private final GLTools.FrameBuffer frameBuffer;
 
     private final ViewInfo viewInfo = new ViewInfo();
-    private final ViewInfoUpdater eyeUpdate, plainUpdate;
+    private final VertexMatrixUpdater eyeUpdate;
+
+    private final Matrix3x3Data vertexMatrixData, colorMapMatrixData;
 
     private final FloatData threshData = new FloatData(.3f);
     private final FloatData strictData = new FloatData(20f);
@@ -206,7 +254,5 @@ public class FilterGenerator {
 
     private TextureLocationData cameraLocationData;
     private int cameraTextureLocation;
-
-    private ColorMapFilter colorMapFilter;
 
 }

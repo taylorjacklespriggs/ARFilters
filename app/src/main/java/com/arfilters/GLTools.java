@@ -21,33 +21,73 @@ import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.util.Log;
 
+import com.arfilters.shader.variable.Embellishment;
+
+import java.text.MessageFormat;
+
 import javax.microedition.khronos.opengles.GL10;
+
+import static android.opengl.GLU.gluErrorString;
 
 public class GLTools {
 
-    public static class Framebuffer {
-        private final int frameBufferID, textureID, renderBufferID;
+    public static class FrameBuffer implements Embellishment {
+
+        private static final String TAG = "FrameBuffer";
+
+        @Override
+        public void enable() {
+            GLES20.glGetIntegerv(GLES20.GL_FRAMEBUFFER_BINDING, oldFramebuffer, 0);
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBufferID);
+        }
+
+        @Override
+        public void disable() {
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, oldFramebuffer[0]);
+        }
+
+        private int[] oldFramebuffer;
+        private final int frameBufferID, textureID;
         private final int width, height;
-        protected Framebuffer(int w, int h, int interpolation, int wrapType) {
+        public FrameBuffer(int w, int h, int interpolation, int wrapType) {
+
+            oldFramebuffer = new int[1];
+
             width = w;
             height = h;
-            final int fbIdx = 0, texIdx = 1, rbIdx = 2;
-            int[] tmp = new int[3];
-            GLES20.glGenFramebuffers(1, tmp, fbIdx);
-            GLES20.glGenTextures(1, tmp, texIdx);
-            GLES20.glGenRenderbuffers(1, tmp, rbIdx);
+            final int fbIdx = 0;
+            int[] tmp = oldFramebuffer;
+
+            GLES20.glGenFramebuffers(1, tmp, 0);
+
             frameBufferID = tmp[fbIdx];
-            textureID = tmp[texIdx];
-            renderBufferID = tmp[rbIdx];
-            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, tmp[fbIdx]);
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, tmp[texIdx]);
-            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
-            setTextureParameters(GLES20.GL_TEXTURE_2D, interpolation, wrapType);
-            GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, renderBufferID);
-            GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, textureID, 0);
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-            GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, 0);
+
+            GLTools.checkGLError(TAG, "generate framebuffer");
+
+
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBufferID);
+
+
+            textureID = genTexture(GLES20.GL_TEXTURE_2D, interpolation, wrapType);
+
+            GLTools.checkGLError(TAG, "set texture parameters");
+
+            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, getWidth(),
+                    getHeight(), 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+
+            GLTools.checkGLError(TAG, "generate framebuffer texture");
+
+
+            GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER,
+                    GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D,
+                    textureID, 0);
+
+            GLTools.checkGLError(TAG, "set framebuffer texture");
+
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+
+            GLTools.checkGLError(TAG, "reset framebuffer");
+
         }
 
         public int getTextureID() {
@@ -66,8 +106,9 @@ public class GLTools {
     public static void checkGLError(String TAG, String label) {
         int error;
         if ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
-            Log.e(TAG, label + ": glError " + error);
-            throw new RuntimeException(label + ": glError " + error);
+            String info = label + ": glError " + error + ": " + gluErrorString(error);
+            Log.e(TAG, info);
+            throw new RuntimeException(info);
         }
     }
 
@@ -94,6 +135,8 @@ public class GLTools {
         int shader = GLES20.glCreateShader(type);
         GLES20.glShaderSource(shader, raw);
         GLES20.glCompileShader(shader);
+        Log.i(TAG, "Finished loading shader");
+        Log.i(TAG, raw);
 
         // Get the compilation status.
         final int[] compileStatus = new int[1];

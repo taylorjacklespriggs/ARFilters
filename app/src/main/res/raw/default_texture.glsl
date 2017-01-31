@@ -23,5 +23,7 @@
  uniform sampler2D u_Texture;
 
  void getTextureFragment(out vec3 fragColor, in vec2 texCoord) {
-    fragColor = sampler2D(u_Texture, texCoord).rgb;
+    if(texCoord.x > 0. && texCoord.x < 1. && texCoord.y > 0. && texCoord.y < 1.) {
+        fragColor = texture2D(u_Texture, texCoord).rgb;
+    }
  }

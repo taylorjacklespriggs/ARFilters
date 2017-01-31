@@ -24,39 +24,14 @@ import com.google.vr.sdk.base.Eye;
 
 public class ViewInfo {
 
-    public enum ViewType {
-        LEFT_EYE,
-        RIGHT_EYE,
-        MONOCULAR;
-
-        public static ViewType getType(int eyeType) {
-            switch(eyeType) {
-                case Eye.Type.LEFT:
-                    return LEFT_EYE;
-                case Eye.Type.RIGHT:
-                    return RIGHT_EYE;
-                default:
-                    return MONOCULAR;
-            }
-        }
-    }
-
-    public void prepareShaderVertexTransformationMatrix(Shader sh, String transUniName) {
-        sh.addUniform(transUniName, vertexTransformationMatrix);
-    }
-
-    public void updateVertexTransformationMatrix(float[] data) {
-        vertexTransformationMatrix.updateData(data);
-    }
-
     public void setEye(Eye eye) {
-        setViewType(ViewInfo.ViewType.getType(eye.getType()));
+        setEyeType(eye.getType());
         setWidth(eye.getViewport().width);
         setHeight(eye.getViewport().height);
     }
 
-    public void setViewType(@NonNull ViewType vt) {
-        viewType = vt;
+    public void setEyeType(@NonNull int vt) {
+        eyeType = vt;
     }
 
     public void setWidth(int w) {
@@ -75,20 +50,14 @@ public class ViewInfo {
         return height;
     }
 
-    public ViewType getViewType() {
-        return viewType;
+    public int getEyeType() {
+        return eyeType;
     }
 
     public ViewInfo() {
-        init();
     }
 
-    private void init() {
-        vertexTransformationMatrix = new Matrix3x3Data();
-    }
-
-    private ViewType viewType;
+    private int eyeType;
     private int width, height;
-    private Matrix3x3Data vertexTransformationMatrix;
 
 }

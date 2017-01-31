@@ -19,21 +19,30 @@ package com.arfilters.filter;
 
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.ViewInfo;
+import com.arfilters.shader.data.Matrix3x3Data;
 
 class SingleShaderFilter implements Filter {
 
-    SingleShaderFilter(Shader sh, ViewInfoUpdater viu) {
-        shader = sh;
-        viewInfoUpdater = viu;
+    @Override
+    public void prepareView() {
     }
 
     @Override
-    public void draw(ViewInfo vi) {
-        viewInfoUpdater.updateViewInfo(vi);
+    public void drawEye(ViewInfo vi) {
+        vertexMatrixData.updateData(vertMatUpdater.updateVertexMatrix(vi));
         shader.draw();
     }
 
+    SingleShaderFilter(Shader sh,
+                       Matrix3x3Data vertMatData,
+                       VertexMatrixUpdater vmi) {
+        shader = sh;
+        vertexMatrixData = vertMatData;
+        vertMatUpdater = vmi;
+    }
+
     protected final Shader shader;
-    private final ViewInfoUpdater viewInfoUpdater;
+    protected final Matrix3x3Data vertexMatrixData;
+    private final VertexMatrixUpdater vertMatUpdater;
 
 }

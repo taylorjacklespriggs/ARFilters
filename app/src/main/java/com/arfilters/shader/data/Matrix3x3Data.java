@@ -18,8 +18,13 @@
 package com.arfilters.shader.data;
 
 import android.opengl.GLES20;
+import android.util.Log;
+
+import java.text.MessageFormat;
 
 public class Matrix3x3Data extends FloatBufferData {
+
+    private static final String TAG = "Matrix3x3Data";
 
     @Override
     public void updateLocation(int location) {
@@ -28,11 +33,6 @@ public class Matrix3x3Data extends FloatBufferData {
 
     public Matrix3x3Data() {
         super(9);
-    }
-
-    public Matrix3x3Data(float[] data) {
-        super(9);
-        updateData(data);
     }
 
 }

@@ -17,25 +17,29 @@
 
 package com.arfilters.filter;
 
+import static com.arfilters.GLTools.FrameBuffer;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.ViewInfo;
 import com.arfilters.shader.data.Matrix3x3Data;
 
-class ColorblindFilter extends ColorMapFilter {
+public class RTTFilter extends SingleShaderFilter {
 
     @Override
     public void prepareView() {
-        updateColorMap(colorMap);
+        frameBuffer.enable();
+        rttShader.draw();
+        frameBuffer.disable();
     }
 
-    ColorblindFilter(Shader sh,
-                     Matrix3x3Data vertMatrix,
-                     VertexMatrixUpdater vmi,
-                     Matrix3x3Data colorMapMat,
-                     float[] cbMap) {
-        super(sh, vertMatrix, vmi, colorMapMat);
-        colorMap = cbMap;
+    public RTTFilter(Shader rtt, Shader pt, FrameBuffer fb,
+                     Matrix3x3Data vertMatData,
+                     VertexMatrixUpdater ptVmi) {
+        super(pt, vertMatData, ptVmi);
+        rttShader = rtt;
+        frameBuffer = fb;
     }
 
-    private float[] colorMap;
+    private final Shader rttShader;
+    private FrameBuffer frameBuffer;
+
 }

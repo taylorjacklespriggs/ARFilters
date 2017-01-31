@@ -18,14 +18,18 @@
 package com.arfilters.shader;
 
 import android.opengl.GLES20;
+import android.util.Log;
 
 import com.arfilters.GLTools;
 import com.arfilters.shader.data.ShaderData;
 import com.arfilters.shader.data.VertexAttributeData;
 import com.arfilters.shader.variable.Attribute;
+import com.arfilters.shader.variable.Embellishment;
 import com.arfilters.shader.variable.ShaderVariable;
 import com.arfilters.shader.variable.Uniform;
 
+import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Shader {
@@ -39,10 +43,10 @@ public class Shader {
     public void createVertices(String positionName, VertexAttributeData verts,
                                String texCoordName, VertexAttributeData texCoords,
                                int length) {
-        Attribute pos = new Attribute(positionName, finalProgram, verts, verts);
+        Attribute pos = new Attribute(positionName, finalProgram, verts);
         vertexAttributes[0] = pos;
 
-        Attribute tex = new Attribute(texCoordName, finalProgram, texCoords, texCoords);
+        Attribute tex = new Attribute(texCoordName, finalProgram, texCoords);
         vertexAttributes[1] = tex;
 
         drawLength = length;
@@ -53,6 +57,7 @@ public class Shader {
         GLTools.checkGLError(TAG, "enter initialize");
 
         GLES20.glUseProgram(finalProgram);
+
         GLTools.checkGLError(TAG, "swapped programs");
 
         updateAttributes();
@@ -72,8 +77,12 @@ public class Shader {
 
         GLTools.checkGLError(TAG, "enter draw");
 
+        GLES20.glDisable(GLES20.GL_DEPTH_TEST);
+
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, drawLength);
+
         GLTools.checkGLError(TAG, "draw triangles");
 
         exit();
@@ -87,16 +96,23 @@ public class Shader {
         for(Attribute att: vertexAttributes) {
             att.disable();
         }
+
         GLTools.checkGLError(TAG, "disable attributes");
 
     }
 
     public Shader(int vProgram, int fProgram) {
         finalProgram = GLES20.glCreateProgram();
+        Log.i(TAG, "glCreateProgram()");
+
         GLES20.glAttachShader(finalProgram, vProgram);
+
         GLES20.glAttachShader(finalProgram, fProgram);
+
         GLES20.glLinkProgram(finalProgram);
+
         GLES20.glUseProgram(finalProgram);
+
         uniforms = new HashMap<>();
     }
 

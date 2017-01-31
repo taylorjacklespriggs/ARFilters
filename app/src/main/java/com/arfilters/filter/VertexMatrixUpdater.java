@@ -15,12 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.arfilters.shader.data;
+package com.arfilters.filter;
 
-public interface AttributeData {
+import com.arfilters.shader.ViewInfo;
 
-    void enable(int location);
+interface VertexMatrixUpdater {
 
-    void disable(int location);
+    float[] updateVertexMatrix(ViewInfo vi);
 
 }

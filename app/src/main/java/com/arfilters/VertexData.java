@@ -32,10 +32,10 @@ public class VertexData {
 
     public static final int FACE_TEX_COORD_DIMENSION = 2;
     public static final float[] FACE_TEX_COORDS = new float[] {
-          0.0f, 1.0f,
           0.0f, 0.0f,
-          1.0f, 1.0f,
+          0.0f, 1.0f,
           1.0f, 0.0f,
+          1.0f, 1.0f,
     };
 
     public static final int FACE_NUMBER_VERTICES = FACE_COORDS.length/FACE_COORD_DIMENSION;

@@ -17,36 +17,29 @@
 
 package com.arfilters.filter;
 
-import com.arfilters.shader.ViewInfo;
+import com.arfilters.shader.Shader;
+import com.arfilters.shader.data.Matrix3x3Data;
 
-class HueRotationFilter implements Filter {
+class HueRotationFilter extends ColorMapFilter {
 
     @Override
-    public void draw(ViewInfo vi) {
-        colorMapFilter.updateColorMap(
-                computeMatrix((float)((count++)*2*Math.PI/loopFrames)));
-        colorMapFilter.draw(vi);
+    public void prepareView() {
+        updateColorMap(computeMatrix((float)((count++)*2*Math.PI/loopFrames)));
     }
 
-    private ColorMapFilter colorMapFilter;
-    private int count;
-    private final int loopFrames;
-
-    HueRotationFilter(ColorMapFilter cmf, int loop) {
-        colorMapFilter = cmf;
+    HueRotationFilter(Shader sh,
+                      Matrix3x3Data vertMatrix,
+                      VertexMatrixUpdater vmi,
+                      Matrix3x3Data colorMapMat,
+                      int loop) {
+        super(sh, vertMatrix, vmi, colorMapMat);
         count = 0;
         loopFrames = loop;
     }
 
-    private static final float  lr=0.213f,
-                                lg=0.715f,
-                                lb=0.072f,
-                                a=0.143f,
-                                b=0.140f,
-                                c=-0.283f;
     private float[] computeMatrix(float hueAngle) {
         final float cos=(float)Math.cos(hueAngle),
-                    sin=(float)Math.sin(hueAngle);
+                sin=(float)Math.sin(hueAngle);
 
         return new float[]{
 
@@ -64,4 +57,15 @@ class HueRotationFilter implements Filter {
 
         };
     }
+
+    private int count;
+    private final int loopFrames;
+
+    private static final float  lr=0.213f,
+                                lg=0.715f,
+                                lb=0.072f,
+                                a=0.143f,
+                                b=0.140f,
+                                c=-0.283f;
+
 }

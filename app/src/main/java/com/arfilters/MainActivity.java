@@ -174,7 +174,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
 
     private void initGL() {
 
-        GLES20.glClearColor(0.1f, 0.1f, 0.1f, 0.5f); // Dark background so text shows up well.
+        GLES20.glClearColor(0f, 0f, 0f, 1f); // Dark background so text shows up well.
 
         ResourceLoader resourceLoader = new ResourceLoader(this);
 
@@ -221,6 +221,8 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
             // Update the camera preview texture
             cameraSurfaceTexture.updateTexImage();
 
+            currentFilter.prepareView();
+
             GLTools.checkGLError(TAG, "onReadyToDraw");
         }
     }
@@ -233,7 +235,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
                 initGL();
             }
 
-            currentFilter.draw(viewInfo);
+            currentFilter.drawEye(viewInfo);
         }
     }
 

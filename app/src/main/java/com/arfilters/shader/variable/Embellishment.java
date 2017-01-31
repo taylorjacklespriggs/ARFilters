@@ -15,12 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.arfilters.filter;
+package com.arfilters.shader.variable;
 
-import com.arfilters.shader.ViewInfo;
+public interface Embellishment {
 
-interface ViewInfoUpdater {
+    void enable();
 
-    void updateViewInfo(ViewInfo vi);
+    void disable();
 
 }

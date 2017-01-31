@@ -31,14 +31,12 @@ public class ShaderGenerator {
                 computeColorString, mainString, useCamera, useDerivatives, floatPrecision);
     }
 
-    /*
     public Shader generateModifiedTextureFragmentShader(int getTextureFragmentID,
                                                         boolean useCamera) {
         return generateShader(resourceLoader.readRawTextFile(getTextureFragmentID),
                 this.getTextureCoordinatesString, this.computeColorString, this.mainString,
                 useCamera, this.useDerivatives, this.floatPrecision);
     }
-    */
 
     public Shader generateModifiedTextureCoordinatesShader(int getTextureCoordinatesID,
                                                            Precision floatPrecision) {
@@ -53,13 +51,9 @@ public class ShaderGenerator {
                 this.mainString, this.useCamera, useDerivatives, this.floatPrecision);
     }
 
-    /*
-    public Shader generateModifiedMainShader(int mainID) {
-        return generateShader(this.getTextureFragmentString, this.getTextureCoordinatesString,
-                this.computeColorString, resourceLoader.readRawTextFile(mainID), this.useCamera,
-                useDerivatives, this.floatPrecision);
+    public void setInitializer(ShaderInitializer si) {
+        initializer = si;
     }
-    */
 
     public ShaderGenerator(ResourceLoader rl, int vertexShader, String getTextureFragmentString,
                            String getTextureCoordinatesString, String computeColorString,
@@ -74,6 +68,7 @@ public class ShaderGenerator {
         this.useCamera = useCamera;
         this.useDerivatives = useDerivatives;
         this.floatPrecision = floatPrecision;
+        this.initializer = null;
     }
 
     private Shader generateShader(String gtfs, String gtcs, String ccs, String ms,
@@ -94,9 +89,14 @@ public class ShaderGenerator {
         sb.append(ccs);
         sb.append('\n');
         sb.append(ms);
-        int fs = GLTools.loadGLShader(TAG, GLES20.GL_FRAGMENT_SHADER, sb.toString());
+        String shader = sb.toString();
+        int fs = GLTools.loadGLShader(TAG, GLES20.GL_FRAGMENT_SHADER, shader);
 
-        return new Shader(vertexShader, fs);
+        Shader sh = new Shader(vertexShader, fs);
+        if(initializer != null) {
+            initializer.initializeShader(sh);
+        }
+        return sh;
     }
 
     private ResourceLoader resourceLoader;
@@ -110,5 +110,7 @@ public class ShaderGenerator {
     private boolean useCamera,
                     useDerivatives;
     private Precision floatPrecision;
+
+    private ShaderInitializer initializer;
 
 }

@@ -18,8 +18,13 @@
 package com.arfilters.shader.data;
 
 import android.opengl.GLES20;
+import android.util.Log;
 
-public class VertexAttributeData extends FloatBufferData implements AttributeData {
+import java.text.MessageFormat;
+
+public class VertexAttributeData extends FloatBufferData {
+
+    private static final String TAG = "VertexAttributeData";
 
     @Override
     public void updateLocation(int location) {
