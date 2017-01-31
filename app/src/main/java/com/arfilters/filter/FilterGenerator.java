@@ -97,12 +97,21 @@ public class FilterGenerator {
     }
 
     private Filter generateExperimentalFilter() {
-        return null;
+        // generate framebuffer shader
+        ShaderInitializer si = genShaderInit(new TextureLocationData(
+                GLES20.GL_TEXTURE_2D, 0, frameBuffer.getTextureID()));
+        shaderGenerator.setInitializer(si);
+        Shader rttShader = shaderGenerator.generateDefaultShader();
+
+        shaderGenerator.setInitializer(defaultShaderInitializer);
+        Shader ptShader = shaderGenerator.generateModifiedTextureFragmentShader(R.raw.default_texture, false);
+
+        return new RTTFilter(rttShader, ptShader, frameBuffer, vertexMatrixData, eyeUpdate);
     }
 
     public Collection<Filter> generateFilters() {
         ArrayList<Filter> filters = new ArrayList<>();
-        //filters.add(generateExperimentalFilter());
+        filters.add(generateExperimentalFilter());
         for(FilterType ft: FilterType.values()) {
             filters.add(generateFilter(ft));
         }
@@ -111,13 +120,17 @@ public class FilterGenerator {
 
     private static final String TAG = "FilterGenerator";
 
-    private ShaderInitializer genShaderInit() {
+    private ShaderInitializer genShaderInit(TextureLocationData texData) {
         ShaderInitializer si = new ShaderInitializer("a_Position",
                 faceVertexData, "a_TexCoord", faceTexCoordData,
                 VertexData.FACE_NUMBER_VERTICES);
         si.addUniform("u_VertexTransform", vertexMatrixData);
-        si.addUniform("u_Texture", cameraLocationData);
+        si.addUniform("u_Texture", texData);
         return si;
+    }
+
+    private ShaderInitializer genShaderInit() {
+        return genShaderInit(cameraLocationData);
     }
 
     public FilterGenerator(ResourceLoader rl) {

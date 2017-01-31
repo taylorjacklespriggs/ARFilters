@@ -24,8 +24,13 @@ import com.arfilters.shader.data.Matrix3x3Data;
 
 public class RTTFilter extends SingleShaderFilter {
 
+    private static final float[] IDENTITY = new float[] {
+            1f,0f,0f,0f,1f,0f,0f,0f,1f
+    };
+
     @Override
     public void prepareView() {
+        vertexMatrixData.updateData(IDENTITY);
         frameBuffer.enable();
         rttShader.draw();
         frameBuffer.disable();
