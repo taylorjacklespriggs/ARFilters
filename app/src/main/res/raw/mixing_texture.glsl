@@ -16,22 +16,17 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /*
- *  Computes the edges of the greyscale.
+ *  Mix alternate texture with original
  */
 
-uniform float u_Threshold;
-uniform float u_Strictness;
+ uniform sampler2D u_AlternateTexture;
 
-void sigmoid(out float varOut, in float varIn) {
-    varOut = 1./(1.+exp(-varIn));
-}
+ uniform float u_FirstAmount;
+ uniform float u_SecondAmount;
 
-void computeColor(out vec3 color, in vec2 fragCoord) {
-    getTextureFragment(color, fragCoord);
-    float grey = length(color);
-    grey = length(vec2(dFdx(grey), dFdy(grey)));
-    sigmoid(grey, u_Strictness*(grey-u_Threshold));
-    color = vec3(grey);
-}
+ void computeColor(out vec4 color, in vec2 texCoord) {
+    getTextureFragment(color, texCoord);
+    color *= u_FirstAmount;
+    color += u_SecondAmount * texture2D(u_AlternateTexture, texCoord);
+ }

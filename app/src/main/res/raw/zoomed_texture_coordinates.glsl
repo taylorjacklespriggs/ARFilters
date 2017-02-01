@@ -22,18 +22,18 @@
 
 varying vec2 v_TexCoord;
 
-void transform(out vec2 outCoord, in vec2 inCoord) {
+void transform(inout vec2 coord) {
     const float v1 = .02;
     const float v2 = 1.;
     const float v3 = 10.;
-    float lensq = dot(inCoord, inCoord);
+    float lensq = dot(coord, coord);
     lensq = v3*((sqrt(lensq+v2)-sqrt(v2))/sqrt(lensq)+v1);
-    outCoord = lensq*inCoord;
+    coord *= lensq;
 }
 
 void getTextureCoordinates(out vec2 texCoord) {
     texCoord = v_TexCoord;
     texCoord -= .5;
-    transform(texCoord, texCoord);
+    transform(texCoord);
     texCoord += .5;
 }

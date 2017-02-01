@@ -43,6 +43,10 @@ public class TextureLocationData implements ShaderData<Integer> {
 
     }
 
+    public void newTextureLocation(int loc) {
+        textureLocation = loc;
+    }
+
     public TextureLocationData(int texType, int texNum, int texLoc) {
         textureType = texType;
         textureNumber = texNum;

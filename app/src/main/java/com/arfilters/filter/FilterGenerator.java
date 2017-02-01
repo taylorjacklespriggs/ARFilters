@@ -90,28 +90,63 @@ public class FilterGenerator {
                         colorMapMatrixData, 600);
         }
 
-        shaderGenerator.setInitializer((type.getClassType() == FilterClass.EDGES) ? edgeShaderInitializer : defaultShaderInitializer);
+        fromCameraShaderGenerator.setInitializer((type.getClassType() == FilterClass.EDGES) ? edgeShaderInitializer : defaultShaderInitializer);
 
-        Shader sh = type.generateShader(shaderGenerator);
+        Shader sh = type.generateShader(fromCameraShaderGenerator);
         return new SingleShaderFilter(sh, vertexMatrixData, eyeUpdate);
     }
 
-    private Filter generateExperimentalFilter() {
-        // generate framebuffer shader
+    /*
+     * This shader mixes the backbuffer with the camera texture for a fading view
+     */
+    private Filter generateFadingFilter() {
+        TextureLocationData
+                camLoc = new TextureLocationData(GLES20.GL_TEXTURE_2D, 0, cameraBuffer.getTextureID()),
+                bbLoc = new TextureLocationData(GLES20.GL_TEXTURE_2D, 1, backBuffer.getTextureID()),
+                fbLoc = new TextureLocationData(GLES20.GL_TEXTURE_2D, 0, frontBuffer.getTextureID());
+
+        // generate camera to texture shader
+        fromCameraShaderGenerator.setInitializer(defaultShaderInitializer);
+        Shader cttShader = fromCameraShaderGenerator.generateDefaultShader();
+
+        // generate mixing shader
+        FloatData firstAmount = new FloatData(.8f),
+                secondAmount = new FloatData(.9f);
+        ShaderInitializer si = genShaderInit(camLoc);
+        si.addUniform("u_FirstAmount", firstAmount);
+        si.addUniform("u_SecondAmount", secondAmount);
+        si.addUniform("u_AlternateTexture", bbLoc);
+        fromTextureShaderGenerator.setInitializer(si);
+        Shader mixShader = fromTextureShaderGenerator.generateModifiedColorShader(R.raw.mixing_texture, false);
+
+        // create the passThrough shader
+        si = genShaderInit(fbLoc);
+        fromTextureShaderGenerator.setInitializer(si);
+        Shader ptShader = fromTextureShaderGenerator.generateDefaultShader();
+
+        return new FadingFilter(cttShader, mixShader, ptShader, frontBuffer,
+                backBuffer, cameraBuffer, vertexMatrixData, fbLoc, bbLoc,
+                eyeUpdate);
+    }
+
+    private Filter generateRTTFilter() {
+        // generate camera to texture shader
+        fromCameraShaderGenerator.setInitializer(defaultShaderInitializer);
+        Shader rttShader = fromCameraShaderGenerator.generateDefaultShader();
+
+        // generate passthrough shader
         ShaderInitializer si = genShaderInit(new TextureLocationData(
-                GLES20.GL_TEXTURE_2D, 0, frameBuffer.getTextureID()));
-        shaderGenerator.setInitializer(si);
-        Shader rttShader = shaderGenerator.generateDefaultShader();
+                GLES20.GL_TEXTURE_2D, 0, frontBuffer.getTextureID()));
+        fromCameraShaderGenerator.setInitializer(si);
+        Shader ptShader = fromCameraShaderGenerator.generateModifiedTextureFragmentShader(R.raw.default_texture, false);
 
-        shaderGenerator.setInitializer(defaultShaderInitializer);
-        Shader ptShader = shaderGenerator.generateModifiedTextureFragmentShader(R.raw.default_texture, false);
-
-        return new RTTFilter(rttShader, ptShader, frameBuffer, vertexMatrixData, eyeUpdate);
+        return new RTTFilter(rttShader, ptShader, frontBuffer, vertexMatrixData, eyeUpdate);
     }
 
     public Collection<Filter> generateFilters() {
         ArrayList<Filter> filters = new ArrayList<>();
-        filters.add(generateExperimentalFilter());
+        filters.add(generateFadingFilter());
+        filters.add(generateRTTFilter());
         for(FilterType ft: FilterType.values()) {
             filters.add(generateFilter(ft));
         }
@@ -155,14 +190,22 @@ public class FilterGenerator {
         int cameraVertexShader = GLTools.loadGLShader(TAG,
                 GLES20.GL_VERTEX_SHADER,
                 rl.readRawTextFile(R.raw.vertex));
-        shaderGenerator = new ShaderGenerator(rl, cameraVertexShader,
+        fromCameraShaderGenerator = new ShaderGenerator(rl, cameraVertexShader,
                 rl.readRawTextFile(R.raw.camera_texture),
                 rl.readRawTextFile(R.raw.default_texture_coordinates),
                 rl.readRawTextFile(R.raw.passthrough),
                 rl.readRawTextFile(R.raw.fs_main), true, false,
                 com.arfilters.shader.Precision.MEDIUM);
+        fromTextureShaderGenerator = new ShaderGenerator(rl, cameraVertexShader,
+                rl.readRawTextFile(R.raw.default_texture),
+                rl.readRawTextFile(R.raw.default_texture_coordinates),
+                rl.readRawTextFile(R.raw.passthrough),
+                rl.readRawTextFile(R.raw.fs_main), false, false,
+                com.arfilters.shader.Precision.MEDIUM);
 
-        frameBuffer = new GLTools.FrameBuffer(WIDTH, HEIGHT, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
+        frontBuffer = new GLTools.FrameBuffer(WIDTH, HEIGHT, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
+        backBuffer = new GLTools.FrameBuffer(WIDTH, HEIGHT, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
+        cameraBuffer = new GLTools.FrameBuffer(WIDTH, HEIGHT, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
 
         vertexMatrixData = new Matrix3x3Data();
         colorMapMatrixData = new Matrix3x3Data();
@@ -191,8 +234,8 @@ public class FilterGenerator {
 
         GLTools.checkGLError(TAG, "initGL");
 
-        shaderGenerator.setInitializer(colorMapShaderInitializer);
-        colorMapShader = shaderGenerator
+        fromCameraShaderGenerator.setInitializer(colorMapShaderInitializer);
+        colorMapShader = fromCameraShaderGenerator
                 .generateModifiedColorShader(R.raw.color_map, false);
     }
 
@@ -245,10 +288,10 @@ public class FilterGenerator {
 
     private final Shader colorMapShader;
 
-    private final ShaderGenerator shaderGenerator;
+    private final ShaderGenerator fromCameraShaderGenerator, fromTextureShaderGenerator;
     private final ShaderInitializer defaultShaderInitializer, edgeShaderInitializer, colorMapShaderInitializer;
 
-    private final GLTools.FrameBuffer frameBuffer;
+    private final GLTools.FrameBuffer frontBuffer, backBuffer, cameraBuffer;
 
     private final ViewInfo viewInfo = new ViewInfo();
     private final VertexMatrixUpdater eyeUpdate;

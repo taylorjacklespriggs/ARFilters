@@ -25,7 +25,7 @@
 // uniform sampler2D u_Texture;
 uniform mat3 u_ColorMapMatrix;
 
-void computeColor(out vec3 fragColor, in vec2 texCoord) {
-    getTextureFragment(fragColor, texCoord);
-    fragColor *= u_ColorMapMatrix;
+void computeColor(out vec4 color, in vec2 texCoord) {
+    getTextureFragment(color, texCoord);
+    color.rgb *= u_ColorMapMatrix;
 }

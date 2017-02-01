@@ -24,16 +24,17 @@
 uniform float u_Threshold;
 uniform float u_Strictness;
 
-void sigmoid(out vec3 varOut, in vec3 varIn) {
-    varOut = 1./(1.+exp(-varIn));
+void sigmoid(inout vec3 var) {
+    var = u_Strictness*(var-u_Threshold);
+    var = 1./(1.+exp(-var));
 }
 
-void computeColor(out vec3 color, in vec2 fragCoord) {
-    getTextureFragment(color, fragCoord);
-    color = vec3(
+void computeColor(out vec4 color, in vec2 texCoord) {
+    getTextureFragment(color, texCoord);
+    color.rgb = vec3(
         length(vec2(dFdx(color.r), dFdy(color.r))),
         length(vec2(dFdx(color.g), dFdy(color.g))),
         length(vec2(dFdx(color.b), dFdy(color.b)))
     );
-    sigmoid(color, u_Strictness*(color-u_Threshold));
+    sigmoid(color.rgb);
 }

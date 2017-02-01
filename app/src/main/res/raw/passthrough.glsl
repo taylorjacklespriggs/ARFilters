@@ -17,9 +17,9 @@
  */
 
 /*
- *  Computes a color with no modification.
+ *  Does not modify input color.
  */
 
-void computeColor(out vec3 fragColor, in vec2 texCoord) {
-    getTextureFragment(fragColor, texCoord);
+void computeColor(out vec4 color, in vec2 texCoord) {
+    getTextureFragment(color, texCoord);
 }

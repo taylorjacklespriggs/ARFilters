@@ -21,7 +21,7 @@
  *  Computes the inverted colors.
  */
 
-void computeColor(out vec3 color, in vec2 fragCoord) {
+void computeColor(out vec4 color, in vec2 fragCoord) {
     getTextureFragment(color, fragCoord);
-    color = 1.-color;
+    color.rgb = 1.-color.rgb;
 }

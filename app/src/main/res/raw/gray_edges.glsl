@@ -18,24 +18,20 @@
 
 
 /*
- *  Computes the gradient edges and subtracts them from the original color.
+ *  Computes the edges of the greyscale.
  */
 
 uniform float u_Threshold;
 uniform float u_Strictness;
 
-void sigmoid(out float varOut, in float varIn) {
-    varOut = 1./(1.+exp(-varIn));
+void sigmoid(inout float var) {
+    var = u_Strictness*(var-u_Threshold);
+    var = 1./(1.+exp(-var));
 }
 
-void computeColor(out vec3 color, in vec2 fragCoord) {
-    getTextureFragment(color, fragCoord);
-    vec3 gradient = vec3(
-        length(vec2(dFdx(color.r), dFdy(color.r))),
-        length(vec2(dFdx(color.g), dFdy(color.g))),
-        length(vec2(dFdx(color.b), dFdy(color.b)))
-    );
-    float gLength = length(gradient);
-    sigmoid(gLength, u_Strictness*(gLength-u_Threshold));
-    color = (1.-gLength)*color;
+void computeColor(out vec4 color, in vec2 texCoord) {
+    float grey = length(color.rgb);
+    grey = length(vec2(dFdx(grey), dFdy(grey)));
+    sigmoid(grey);
+    color.rgb = vec3(grey);
 }

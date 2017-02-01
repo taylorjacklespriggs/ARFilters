@@ -44,12 +44,10 @@ enum FilterType {
 
 
     INVERTED,
-    DISCRETE,
 
     GRAY_EDGES,
     GRADIENT_EDGES,
-    ENHANCED_EDGES,
-    TOON;
+    ENHANCED_EDGES;
 
     public Shader generateShader(ShaderGenerator sg) {
         switch(getClassType()) {
@@ -78,12 +76,10 @@ enum FilterType {
             case ANAGLYPH:
                 return FilterClass.COLOR_MAP;
             case INVERTED:
-            case DISCRETE:
                 return FilterClass.COLOR_MOD;
             case GRAY_EDGES:
             case GRADIENT_EDGES:
             case ENHANCED_EDGES:
-            case TOON:
                 return FilterClass.EDGES;
         }
 
@@ -106,16 +102,12 @@ enum FilterType {
                 return R.raw.zoomed_texture_coordinates;
             case INVERTED:
                 return R.raw.inverted;
-            case DISCRETE:
-                return R.raw.discrete_color;
             case GRAY_EDGES:
-                return R.raw.grey_edges;
+                return R.raw.gray_edges;
             case GRADIENT_EDGES:
                 return R.raw.gradient_edges;
             case ENHANCED_EDGES:
                 return R.raw.enhanced_edges;
-            case TOON:
-                return R.raw.toon;
         }
 
         throw new RuntimeException("FS resource undefined for filter "+this);
