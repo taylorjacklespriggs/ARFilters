@@ -20,6 +20,7 @@ package com.arfilters.filter;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 
+import static com.arfilters.GLTools.FrameBuffer;
 import com.arfilters.GLTools;
 import com.arfilters.ResourceLoader;
 import com.arfilters.VertexData;
@@ -97,35 +98,60 @@ public class FilterGenerator {
     }
 
     /*
-     * This shader mixes the backbuffer with the camera texture for a fading view
+     * This shader subtracts noise
      */
-    private Filter generateFadingFilter() {
+    private Filter generateDarknessFilter(float halfLife, float sensitivity) {
+
+        // generate camera to texture shader
+        fromCameraShaderGenerator.setInitializer(defaultShaderInitializer);
+        Shader cttShader = fromCameraShaderGenerator.generateModifiedColorShader(R.raw.highq_gray, false);
+
+        // generate mixing shader
+        fromTextureShaderGenerator.setInitializer(defaultShaderInitializer);
+        Shader statShader = fromTextureShaderGenerator.generateModifiedColorShader(R.raw.pixel_stats, false);
+
+        // create the passThrough shader
+        Shader ptShader = fromTextureShaderGenerator.generateModifiedColorShader(R.raw.darkness_passthrough, false);
+
+        return new DarknessFilter(cttShader, statShader, ptShader, buffers[0][0], buffers[0][1],
+                cameraBuffer, vertexMatrixData, halfLife, sensitivity, eyeUpdate);
+    }
+
+    /*
+     * This shader mimics the other but with a 16bit monochrome texture
+     */
+    private Filter generateMonochromeFadingFilter(float halfLife, float brightness) {
+        brightness /= (float)Math.sqrt(3);
+        final float fps = 60f;
+        float r = fps*halfLife; // num frames
+        r = (float)Math.pow(.5, 1./r); // fading factor
+
         TextureLocationData
                 camLoc = new TextureLocationData(GLES20.GL_TEXTURE_2D, 0, cameraBuffer.getTextureID()),
-                bbLoc = new TextureLocationData(GLES20.GL_TEXTURE_2D, 1, backBuffer.getTextureID()),
-                fbLoc = new TextureLocationData(GLES20.GL_TEXTURE_2D, 0, frontBuffer.getTextureID());
+                bbLoc = new TextureLocationData(GLES20.GL_TEXTURE_2D, 1, buffers[0][1].getTextureID()),
+                fbLoc = new TextureLocationData(GLES20.GL_TEXTURE_2D, 0, buffers[0][0].getTextureID());
 
         // generate camera to texture shader
         fromCameraShaderGenerator.setInitializer(defaultShaderInitializer);
         Shader cttShader = fromCameraShaderGenerator.generateDefaultShader();
 
         // generate mixing shader
-        FloatData firstAmount = new FloatData(.8f),
-                secondAmount = new FloatData(.9f);
+        FloatData secondAmount = new FloatData(r);
         ShaderInitializer si = genShaderInit(camLoc);
-        si.addUniform("u_FirstAmount", firstAmount);
-        si.addUniform("u_SecondAmount", secondAmount);
+        si.addUniform("u_FadeAmount", secondAmount);
         si.addUniform("u_AlternateTexture", bbLoc);
         fromTextureShaderGenerator.setInitializer(si);
-        Shader mixShader = fromTextureShaderGenerator.generateModifiedColorShader(R.raw.mixing_texture, false);
+        Shader mixShader = fromTextureShaderGenerator.generateModifiedColorShader(R.raw.monochrome_mixing_texture, false);
 
         // create the passThrough shader
+        FloatData ceiling = new FloatData(1f/((1f-r)*brightness));
         si = genShaderInit(fbLoc);
+        si.addUniform("u_Ceiling", ceiling);
         fromTextureShaderGenerator.setInitializer(si);
-        Shader ptShader = fromTextureShaderGenerator.generateDefaultShader();
+        Shader ptShader = fromTextureShaderGenerator.generateModifiedColorShader(R.raw.monochrome_passthrough, false);
 
-        return new FadingFilter(cttShader, mixShader, ptShader, frontBuffer,
-                backBuffer, cameraBuffer, vertexMatrixData, fbLoc, bbLoc,
+        return new FadingFilter(cttShader, mixShader, ptShader, buffers[0][0],
+                buffers[0][1], cameraBuffer, vertexMatrixData, fbLoc, bbLoc,
                 eyeUpdate);
     }
 
@@ -136,17 +162,17 @@ public class FilterGenerator {
 
         // generate passthrough shader
         ShaderInitializer si = genShaderInit(new TextureLocationData(
-                GLES20.GL_TEXTURE_2D, 0, frontBuffer.getTextureID()));
+                GLES20.GL_TEXTURE_2D, 0, buffers[0][0].getTextureID()));
         fromCameraShaderGenerator.setInitializer(si);
         Shader ptShader = fromCameraShaderGenerator.generateModifiedTextureFragmentShader(R.raw.default_texture, false);
 
-        return new RTTFilter(rttShader, ptShader, frontBuffer, vertexMatrixData, eyeUpdate);
+        return new RTTFilter(rttShader, ptShader, buffers[0][0], vertexMatrixData, eyeUpdate);
     }
 
     public Collection<Filter> generateFilters() {
         ArrayList<Filter> filters = new ArrayList<>();
-        filters.add(generateFadingFilter());
-        filters.add(generateRTTFilter());
+        filters.add(generateMonochromeFadingFilter(10f/60f, 1f));
+        filters.add(generateDarknessFilter(60f/60f, 10f));
         for(FilterType ft: FilterType.values()) {
             filters.add(generateFilter(ft));
         }
@@ -203,9 +229,15 @@ public class FilterGenerator {
                 rl.readRawTextFile(R.raw.fs_main), false, false,
                 com.arfilters.shader.Precision.MEDIUM);
 
-        frontBuffer = new GLTools.FrameBuffer(WIDTH, HEIGHT, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
-        backBuffer = new GLTools.FrameBuffer(WIDTH, HEIGHT, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
-        cameraBuffer = new GLTools.FrameBuffer(WIDTH, HEIGHT, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
+        buffers = new FrameBuffer[2][2];
+        for(FrameBuffer[] fba : buffers) {
+            for(int i = 0; i < fba.length; ++i) {
+                fba[i] = new GLTools.FrameBuffer(WIDTH, HEIGHT, GLES20.GL_RGBA, GLES20.GL_RGBA,
+                        GLES20.GL_UNSIGNED_BYTE, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
+            }
+        }
+        cameraBuffer = new GLTools.FrameBuffer(WIDTH, HEIGHT, GLES20.GL_RGBA, GLES20.GL_RGBA,
+                GLES20.GL_UNSIGNED_BYTE, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
 
         vertexMatrixData = new Matrix3x3Data();
         colorMapMatrixData = new Matrix3x3Data();
@@ -291,7 +323,8 @@ public class FilterGenerator {
     private final ShaderGenerator fromCameraShaderGenerator, fromTextureShaderGenerator;
     private final ShaderInitializer defaultShaderInitializer, edgeShaderInitializer, colorMapShaderInitializer;
 
-    private final GLTools.FrameBuffer frontBuffer, backBuffer, cameraBuffer;
+    private final FrameBuffer[][] buffers;
+    private final FrameBuffer cameraBuffer;
 
     private final ViewInfo viewInfo = new ViewInfo();
     private final VertexMatrixUpdater eyeUpdate;

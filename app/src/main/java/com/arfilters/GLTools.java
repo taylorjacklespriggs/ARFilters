@@ -17,13 +17,10 @@
 
 package com.arfilters;
 
-import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.util.Log;
 
 import com.arfilters.shader.variable.Embellishment;
-
-import java.text.MessageFormat;
 
 import javax.microedition.khronos.opengles.GL10;
 
@@ -49,7 +46,8 @@ public class GLTools {
         private int[] oldFramebuffer;
         private final int frameBufferID, textureID;
         private final int width, height;
-        public FrameBuffer(int w, int h, int interpolation, int wrapType) {
+        public FrameBuffer(int w, int h, int internalFormat, int format, int storeType,
+                           int interpolation, int wrapType) {
 
             oldFramebuffer = new int[1];
 
@@ -72,8 +70,8 @@ public class GLTools {
 
             GLTools.checkGLError(TAG, "set texture parameters");
 
-            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, getWidth(),
-                    getHeight(), 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, internalFormat, getWidth(),
+                    getHeight(), 0, format, storeType, null);
 
             GLTools.checkGLError(TAG, "generate framebuffer texture");
 
@@ -135,8 +133,6 @@ public class GLTools {
         int shader = GLES20.glCreateShader(type);
         GLES20.glShaderSource(shader, raw);
         GLES20.glCompileShader(shader);
-        Log.i(TAG, "Finished loading shader");
-        Log.i(TAG, raw);
 
         // Get the compilation status.
         final int[] compileStatus = new int[1];

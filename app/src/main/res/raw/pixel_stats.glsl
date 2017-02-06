@@ -16,28 +16,35 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /*
- *  Computes the edges for each color. Computes the length of the resulting color and passes
- *  through a sigmoid.
+ *  Takes red to be MSB and green to be LSB of grayscale color.
  */
 
-uniform float u_Threshold;
-uniform float u_Strictness;
+ uniform sampler2D u_BufferTexture;
 
-void sigmoid(inout float var) {
-    var = u_Strictness*(var-u_Threshold);
-    var = 1./(1.+exp(-var));
-}
+ uniform float u_FadeAmount;
+ uniform float u_Scale;
+
+ void getGray(out highp float varOut, in vec2 varIn) {
+    varOut = varIn.r*255.;
+    varOut += varIn.g*255./256.;
+ }
+
+ void setGray(out vec2 varOut, in highp float varIn) {
+    highp float g = mod(varIn, 1.);
+    varOut.g = g*256./255.;
+    varOut.r = (varIn-g)/255.;
+ }
 
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
-    color.rgb = vec3(
-        length(vec2(dFdx(color.r), dFdy(color.r))),
-        length(vec2(dFdx(color.g), dFdy(color.g))),
-        length(vec2(dFdx(color.b), dFdy(color.b)))
-    );
-    float gLength = length(color.rgb);
-    sigmoid(gLength);
-    color.rgb = vec3(gLength);
+    vec4 noise = texture2D(u_BufferTexture, texCoord);
+
+    highp float gray, avg, var;
+    getGray(gray, color.rg);
+    getGray(avg, noise.rg);
+    getGray(var, noise.ba);
+
+    setGray(color.rg, gray+u_FadeAmount*avg);
+    setGray(color.ba, pow(gray-u_Scale*avg, 2.)+u_FadeAmount*var);
 }

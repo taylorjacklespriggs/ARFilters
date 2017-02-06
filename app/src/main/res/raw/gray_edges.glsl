@@ -30,6 +30,7 @@ void sigmoid(inout float var) {
 }
 
 void computeColor(out vec4 color, in vec2 texCoord) {
+    getTextureFragment(color, texCoord);
     float grey = length(color.rgb);
     grey = length(vec2(dFdx(grey), dFdy(grey)));
     sigmoid(grey);

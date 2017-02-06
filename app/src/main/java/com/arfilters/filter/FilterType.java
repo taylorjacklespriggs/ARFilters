@@ -47,6 +47,7 @@ enum FilterType {
 
     GRAY_EDGES,
     GRADIENT_EDGES,
+    CHROMATIC_EDGES,
     ENHANCED_EDGES;
 
     public Shader generateShader(ShaderGenerator sg) {
@@ -79,6 +80,7 @@ enum FilterType {
                 return FilterClass.COLOR_MOD;
             case GRAY_EDGES:
             case GRADIENT_EDGES:
+            case CHROMATIC_EDGES:
             case ENHANCED_EDGES:
                 return FilterClass.EDGES;
         }
@@ -106,6 +108,8 @@ enum FilterType {
                 return R.raw.gray_edges;
             case GRADIENT_EDGES:
                 return R.raw.gradient_edges;
+            case CHROMATIC_EDGES:
+                return R.raw.chromatic_edges;
             case ENHANCED_EDGES:
                 return R.raw.enhanced_edges;
         }

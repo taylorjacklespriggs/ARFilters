@@ -17,6 +17,7 @@
 
 package com.arfilters.filter;
 
+import com.arfilters.GLTools;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.arfilters.shader.data.TextureLocationData;
@@ -24,6 +25,8 @@ import com.arfilters.shader.data.TextureLocationData;
 import static com.arfilters.GLTools.FrameBuffer;
 
 public class FadingFilter extends SingleShaderFilter {
+
+    private static final String TAG = "SingleShaderFilter";
 
     private static final float[] IDENTITY = new float[] {
             1f,0f,0f,0f,1f,0f,0f,0f,1f
@@ -39,10 +42,14 @@ public class FadingFilter extends SingleShaderFilter {
         // now cameraBuffer has original framebufferID
         cameraToTextureShader.draw();
 
+        GLTools.checkGLError(TAG, "draw camera passthrough");
+
         // mix cameraBuffer and backBuffer
-        frontBuffer.enable();
         backTextureData.newTextureLocation(backBuffer.getTextureID());
+        frontBuffer.enable();
         mixingShader.draw();
+
+        GLTools.checkGLError(TAG, "draw mixing shader");
 
         // update frontTextureID for passThrough
         frontTextureData.newTextureLocation(frontBuffer.getTextureID());
@@ -55,6 +62,8 @@ public class FadingFilter extends SingleShaderFilter {
         // reset original framebufferID
         cameraBuffer.disable();
 
+        GLTools.checkGLError(TAG, "reset frameBuffer");
+
     }
 
     public FadingFilter(Shader ctt, Shader mix, Shader pt, FrameBuffer front,
@@ -66,7 +75,6 @@ public class FadingFilter extends SingleShaderFilter {
         super(pt, vertMatData, ptVmi);
         cameraToTextureShader = ctt;
         mixingShader = mix;
-        passThroughShader = pt;
         frontBuffer = front;
         backBuffer = back;
         cameraBuffer = camera;
@@ -74,7 +82,7 @@ public class FadingFilter extends SingleShaderFilter {
         backTextureData = backTexture;
     }
 
-    private final Shader cameraToTextureShader, mixingShader, passThroughShader;
+    private final Shader cameraToTextureShader, mixingShader;
     private FrameBuffer frontBuffer, backBuffer;
     private final FrameBuffer cameraBuffer;
     private final TextureLocationData

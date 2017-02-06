@@ -16,28 +16,24 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /*
- *  Computes the edges for each color. Computes the length of the resulting color and passes
- *  through a sigmoid.
+ *  Mix alternate texture with original in one color using red and green channels
+ *  for higher precision. Could not render to one 16bit component with GLES20.
  */
 
-uniform float u_Threshold;
-uniform float u_Strictness;
+ uniform sampler2D u_AlternateTexture;
 
-void sigmoid(inout float var) {
-    var = u_Strictness*(var-u_Threshold);
-    var = 1./(1.+exp(-var));
-}
+ uniform float u_FadeAmount;
 
-void computeColor(out vec4 color, in vec2 texCoord) {
+ void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
-    color.rgb = vec3(
-        length(vec2(dFdx(color.r), dFdy(color.r))),
-        length(vec2(dFdx(color.g), dFdy(color.g))),
-        length(vec2(dFdx(color.b), dFdy(color.b)))
-    );
-    float gLength = length(color.rgb);
-    sigmoid(gLength);
-    color.rgb = vec3(gLength);
-}
+    // red as MSB
+    highp float gray1 = length(color.rgb);
+    vec2 rg = texture2D(u_AlternateTexture, texCoord).rg;
+    highp float gray2 = 255.*rg.r;
+    gray2 += rg.g*255./256.; // g in range [0,1] but should be in [0,255/256]
+    // add gray values
+    gray1 += u_FadeAmount*gray2;
+    color.g = mod(gray1, 1.); // get LSB
+    color.r = (gray1 - color.g)/255.; // get MSB
+ }

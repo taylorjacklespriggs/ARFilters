@@ -16,28 +16,15 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /*
- *  Computes the edges for each color. Computes the length of the resulting color and passes
- *  through a sigmoid.
+ *  Takes red to be MSB and green to be LSB of grayscale color.
  */
 
-uniform float u_Threshold;
-uniform float u_Strictness;
-
-void sigmoid(inout float var) {
-    var = u_Strictness*(var-u_Threshold);
-    var = 1./(1.+exp(-var));
-}
+uniform float u_Ceiling;
 
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
-    color.rgb = vec3(
-        length(vec2(dFdx(color.r), dFdy(color.r))),
-        length(vec2(dFdx(color.g), dFdy(color.g))),
-        length(vec2(dFdx(color.b), dFdy(color.b)))
-    );
-    float gLength = length(color.rgb);
-    sigmoid(gLength);
-    color.rgb = vec3(gLength);
+    highp float gray = color.r*255.;
+    gray += color.g*255./256.;
+    color.rgb = vec3(gray/u_Ceiling);
 }

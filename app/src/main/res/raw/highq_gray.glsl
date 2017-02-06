@@ -16,28 +16,18 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /*
- *  Computes the edges for each color. Computes the length of the resulting color and passes
- *  through a sigmoid.
+ *  Mix alternate texture with original in one color using red and green channels
+ *  for higher precision. Could not render to one 16bit component with GLES20.
  */
 
-uniform float u_Threshold;
-uniform float u_Strictness;
+ void setGray(out vec2 varOut, in highp float varIn) {
+    highp float g = mod(varIn, 1.);
+    varOut.g = g*256./255.;
+    varOut.r = (varIn-g)/255.;
+ }
 
-void sigmoid(inout float var) {
-    var = u_Strictness*(var-u_Threshold);
-    var = 1./(1.+exp(-var));
-}
-
-void computeColor(out vec4 color, in vec2 texCoord) {
+ void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
-    color.rgb = vec3(
-        length(vec2(dFdx(color.r), dFdy(color.r))),
-        length(vec2(dFdx(color.g), dFdy(color.g))),
-        length(vec2(dFdx(color.b), dFdy(color.b)))
-    );
-    float gLength = length(color.rgb);
-    sigmoid(gLength);
-    color.rgb = vec3(gLength);
-}
+    setGray(color.rg, dot(color.rgb, vec3(1.)));
+ }
