@@ -92,6 +92,14 @@ public class GLTools {
             return textureID;
         }
 
+        public int getOldFramebuffer() {
+            return oldFramebuffer[0];
+        }
+
+        public void setOldFramebuffer(int fb) {
+            oldFramebuffer[0] = fb;
+        }
+
         public int getWidth() {
             return width;
         }

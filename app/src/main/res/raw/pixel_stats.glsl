@@ -23,7 +23,6 @@
  uniform sampler2D u_BufferTexture;
 
  uniform float u_FadeAmount;
- uniform float u_Scale;
 
  void getGray(out highp float varOut, in vec2 varIn) {
     varOut = varIn.r*255.;
@@ -40,11 +39,12 @@ void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
     vec4 noise = texture2D(u_BufferTexture, texCoord);
 
-    highp float gray, avg, var;
+    highp float gray, avg, var, navg;
     getGray(gray, color.rg);
     getGray(avg, noise.rg);
     getGray(var, noise.ba);
 
-    setGray(color.rg, gray+u_FadeAmount*avg);
-    setGray(color.ba, pow(gray-u_Scale*avg, 2.)+u_FadeAmount*var);
+    navg = gray+u_FadeAmount*avg;
+    setGray(color.rg, navg);
+    setGray(color.ba, (gray-navg)*(gray-avg)+u_FadeAmount*var);
 }

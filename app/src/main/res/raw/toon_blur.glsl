@@ -17,36 +17,32 @@
  */
 
 /*
- *  Takes red to be MSB and green to be LSB of grayscale color.
+ *  Computes a horizontal horiz_blur.
  */
 
- uniform sampler2D u_BufferTexture;
+uniform sampler2D u_Edges;
 
- uniform float u_Scale;
- uniform float u_Sensitivity;
+uniform vec2 u_Delta;
 
- void getGray(out highp float varOut, in vec2 varIn) {
-    varOut = varIn.r*255.;
-    varOut += varIn.g*255./256.;
- }
+void calcCol(inout vec4 color, inout float count, in vec2 texCoord) {
+    vec4 frag;
+    getTextureFragment(frag, texCoord);
+    if(frag.a == 0.) {
+        color.rgb += frag.rgb;
+        color.a = max(color.a, frag.a);
+        count += 1.;
+    }
+}
 
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
-
-    vec4 noise = texture2D(u_BufferTexture, texCoord);
-
-    highp float gray, avg, var;
-    getGray(gray, color.rg);
-    getGray(avg, noise.rg);
-    avg *= u_Scale;
-    getGray(var, noise.ba);
-    var *= u_Scale;
-    var /= u_Sensitivity;
-    if(var < 0.) {
-        color.rgb = vec3(1.,vec2(0.));
-    } else {
-        gray -= avg;
-        gray = 1.-exp(-gray*gray/(2.*var));
-        color.rgb = vec3(gray);
+    vec4 frag;
+    float count = 0.;
+    color = vec4(0.);
+    calcCol(color, count, texCoord);
+    calcCol(color, count, texCoord+u_Delta);
+    calcCol(color, count, texCoord-u_Delta);
+    if(count > 1.) {
+        color.rgb /= count;
     }
 }

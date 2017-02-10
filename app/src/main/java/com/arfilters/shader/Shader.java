@@ -79,6 +79,8 @@ public class Shader {
 
         GLES20.glDisable(GLES20.GL_DEPTH_TEST);
 
+        GLES20.glDisable(GLES20.GL_BLEND);
+
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, drawLength);

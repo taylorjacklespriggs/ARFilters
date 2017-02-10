@@ -101,7 +101,6 @@ public class DarknessFilter extends SingleShaderFilter {
         FloatData scale = new FloatData(1f-fadeAmount);
 
         statsShader.addUniform("u_FadeAmount", new FloatData(fadeAmount));
-        statsShader.addUniform("u_Scale", scale);
         pt.addUniform("u_Scale", scale);
         pt.addUniform("u_Sensitivity", new FloatData(sensitivity));
     }

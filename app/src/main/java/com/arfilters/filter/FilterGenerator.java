@@ -41,7 +41,8 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class FilterGenerator {
 
-    public static final int WIDTH = 1920, HEIGHT = 1080;
+    public static final int CAMERA_WIDTH = 1920, CAMERA_HEIGHT = 1080;
+    public static final int BUFFER_WIDTH = CAMERA_WIDTH, BUFFER_HEIGHT = CAMERA_HEIGHT;
 
     public int getCameraTextureLocation() {
         return cameraTextureLocation;
@@ -114,11 +115,51 @@ public class FilterGenerator {
         Shader ptShader = fromTextureShaderGenerator.generateModifiedColorShader(R.raw.darkness_passthrough, false);
 
         return new DarknessFilter(cttShader, statShader, ptShader, buffers[0][0], buffers[0][1],
-                cameraBuffer, vertexMatrixData, halfLife, sensitivity, eyeUpdate);
+                alternateBuffer, vertexMatrixData, halfLife, sensitivity, eyeUpdate);
     }
 
     /*
-     * This shader mimics the other but with a 16bit monochrome texture
+     * Simple 3x3 box blur repeated iters times
+     */
+    private Filter generateBlurFilter(int iters) {
+
+        // generate camera to texture shader
+        fromCameraShaderGenerator.setInitializer(defaultShaderInitializer);
+        Shader cttShader = fromCameraShaderGenerator.generateDefaultShader();
+
+        // generate mixing shader
+        fromTextureShaderGenerator.setInitializer(defaultShaderInitializer);
+        Shader blurShader = fromTextureShaderGenerator.generateModifiedColorShader(R.raw.blur, false);
+
+        // create the passThrough shader
+        Shader ptShader = fromTextureShaderGenerator.generateDefaultShader();
+
+        return new BlurFilter(cttShader, blurShader, ptShader, buffers[0][0], buffers[0][1],
+                iters, vertexMatrixData, eyeUpdate);
+    }
+
+    /*
+     * Toon filter
+     */
+    private Filter generateToonFilter(int iters, float thresh) {
+
+        // generate edge shader
+        fromCameraShaderGenerator.setInitializer(defaultShaderInitializer);
+        Shader edgeShader = fromCameraShaderGenerator.generateModifiedColorShader(R.raw.toon_edges, true);
+
+        // generate blur shader
+        fromTextureShaderGenerator.setInitializer(defaultShaderInitializer);
+        Shader blurShader = fromTextureShaderGenerator.generateModifiedColorShader(R.raw.toon_blur, false);
+
+        // create the passThrough shader
+        Shader ptShader = fromTextureShaderGenerator.generateModifiedColorShader(R.raw.toon_passthrough, false);
+
+        return new ToonFilter(edgeShader, blurShader, ptShader, buffers[0][0], buffers[0][1],
+                iters, thresh, vertexMatrixData, eyeUpdate);
+    }
+
+    /*
+     * This shader fades with a 16bit monochrome texture
      */
     private Filter generateMonochromeFadingFilter(float halfLife, float brightness) {
         brightness /= (float)Math.sqrt(3);
@@ -127,7 +168,7 @@ public class FilterGenerator {
         r = (float)Math.pow(.5, 1./r); // fading factor
 
         TextureLocationData
-                camLoc = new TextureLocationData(GLES20.GL_TEXTURE_2D, 0, cameraBuffer.getTextureID()),
+                camLoc = new TextureLocationData(GLES20.GL_TEXTURE_2D, 0, alternateBuffer.getTextureID()),
                 bbLoc = new TextureLocationData(GLES20.GL_TEXTURE_2D, 1, buffers[0][1].getTextureID()),
                 fbLoc = new TextureLocationData(GLES20.GL_TEXTURE_2D, 0, buffers[0][0].getTextureID());
 
@@ -151,7 +192,7 @@ public class FilterGenerator {
         Shader ptShader = fromTextureShaderGenerator.generateModifiedColorShader(R.raw.monochrome_passthrough, false);
 
         return new FadingFilter(cttShader, mixShader, ptShader, buffers[0][0],
-                buffers[0][1], cameraBuffer, vertexMatrixData, fbLoc, bbLoc,
+                buffers[0][1], alternateBuffer, vertexMatrixData, fbLoc, bbLoc,
                 eyeUpdate);
     }
 
@@ -171,8 +212,13 @@ public class FilterGenerator {
 
     public Collection<Filter> generateFilters() {
         ArrayList<Filter> filters = new ArrayList<>();
+        filters.add(generateRTTFilter());
+        filters.add(generateToonFilter(5, .025f));
+        filters.add(generateToonFilter(5, .05f));
+        filters.add(generateToonFilter(5, .1f));
+        filters.add(generateBlurFilter(5));
         filters.add(generateMonochromeFadingFilter(10f/60f, 1f));
-        filters.add(generateDarknessFilter(60f/60f, 10f));
+        filters.add(generateDarknessFilter(60f/60f, 1f));
         for(FilterType ft: FilterType.values()) {
             filters.add(generateFilter(ft));
         }
@@ -200,8 +246,8 @@ public class FilterGenerator {
             @Override
             public float[] updateVertexMatrix(ViewInfo vi) {
                 float scale = .6f;
-                float Cw = scale*WIDTH;
-                float Ch = scale*HEIGHT;
+                float Cw = scale*CAMERA_WIDTH;
+                float Ch = scale*CAMERA_HEIGHT;
                 float Vw = vi.getWidth();
                 float Vh = vi.getHeight();
 
@@ -232,11 +278,11 @@ public class FilterGenerator {
         buffers = new FrameBuffer[2][2];
         for(FrameBuffer[] fba : buffers) {
             for(int i = 0; i < fba.length; ++i) {
-                fba[i] = new GLTools.FrameBuffer(WIDTH, HEIGHT, GLES20.GL_RGBA, GLES20.GL_RGBA,
+                fba[i] = new GLTools.FrameBuffer(BUFFER_WIDTH, BUFFER_HEIGHT, GLES20.GL_RGBA, GLES20.GL_RGBA,
                         GLES20.GL_UNSIGNED_BYTE, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
             }
         }
-        cameraBuffer = new GLTools.FrameBuffer(WIDTH, HEIGHT, GLES20.GL_RGBA, GLES20.GL_RGBA,
+        alternateBuffer = new GLTools.FrameBuffer(BUFFER_WIDTH, BUFFER_HEIGHT, GLES20.GL_RGBA, GLES20.GL_RGBA,
                 GLES20.GL_UNSIGNED_BYTE, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
 
         vertexMatrixData = new Matrix3x3Data();
@@ -312,19 +358,13 @@ public class FilterGenerator {
             {0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f}
     };
 
-    private static final float[] identity = new float[] {
-            1f, 0f, 0f,
-            0f, 1f, 0f,
-            0f, 0f, 1f
-    };
-
     private final Shader colorMapShader;
 
     private final ShaderGenerator fromCameraShaderGenerator, fromTextureShaderGenerator;
     private final ShaderInitializer defaultShaderInitializer, edgeShaderInitializer, colorMapShaderInitializer;
 
     private final FrameBuffer[][] buffers;
-    private final FrameBuffer cameraBuffer;
+    private final FrameBuffer alternateBuffer;
 
     private final ViewInfo viewInfo = new ViewInfo();
     private final VertexMatrixUpdater eyeUpdate;

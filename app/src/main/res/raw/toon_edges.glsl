@@ -16,37 +16,18 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 /*
- *  Takes red to be MSB and green to be LSB of grayscale color.
+ *  Computes the edges for each color. Computes the length of the resulting color and passes
+ *  through a sigmoid.
  */
 
- uniform sampler2D u_BufferTexture;
-
- uniform float u_Scale;
- uniform float u_Sensitivity;
-
- void getGray(out highp float varOut, in vec2 varIn) {
-    varOut = varIn.r*255.;
-    varOut += varIn.g*255./256.;
- }
+uniform float u_Threshold;
 
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
-
-    vec4 noise = texture2D(u_BufferTexture, texCoord);
-
-    highp float gray, avg, var;
-    getGray(gray, color.rg);
-    getGray(avg, noise.rg);
-    avg *= u_Scale;
-    getGray(var, noise.ba);
-    var *= u_Scale;
-    var /= u_Sensitivity;
-    if(var < 0.) {
-        color.rgb = vec3(1.,vec2(0.));
-    } else {
-        gray -= avg;
-        gray = 1.-exp(-gray*gray/(2.*var));
-        color.rgb = vec3(gray);
-    }
+    float gLength = length(vec2(dFdx(color.r), dFdy(color.r)))
+                    + length(vec2(dFdx(color.g), dFdy(color.g)))
+                    + length(vec2(dFdx(color.b), dFdy(color.b)));
+    color.a = step(u_Threshold, gLength);
 }
