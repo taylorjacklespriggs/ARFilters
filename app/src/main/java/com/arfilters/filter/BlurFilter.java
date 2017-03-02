@@ -21,33 +21,42 @@ import android.opengl.GLES20;
 
 import com.arfilters.GLTools;
 import com.arfilters.shader.Shader;
+import com.arfilters.shader.ShaderGenerator;
 import com.arfilters.shader.data.FloatData;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.arfilters.shader.data.TextureLocationData;
 import com.arfilters.shader.data.Vector2Data;
+import com.taylorjs.hproject.arfilters.R;
 
 import static com.arfilters.GLTools.FrameBuffer;
 
-public class BlurFilter extends SingleShaderFilter {
+class BlurFilter extends BufferedFilter {
 
-    private static final String TAG = "SingleShaderFilter";
+    static BlurFilter create(ShaderGenerator camGen,
+                                    ShaderGenerator texGen,
+                                    FrameBuffer front,
+                                    FrameBuffer back,
+                                    int iters,
+                                    Matrix3x3Data vertMatData,
+                                    VertexMatrixUpdater ptVmi) {
+        Shader ctt = camGen.generateShader();
 
-    private static final float[] IDENTITY = new float[] {
-            1f,0f,0f,0f,1f,0f,0f,0f,1f
-    };
+        // create the passThrough shader
+        Shader pt = texGen.generateShader();
+
+        texGen.setComputeColor(R.raw.blur);
+        Shader blur = texGen.generateShader();
+        return new BlurFilter(ctt, blur, pt, front, back, iters, vertMatData,
+                ptVmi);
+    }
 
     @Override
-    public void prepareView() {
-
-        vertexMatrixData.updateData(IDENTITY);
+    protected void renderToBuffers() {
 
         // render camera to texture
         firstBuffer.enable();
-        int oldBuffer = firstBuffer.getOldFramebuffer();
 
         cameraToTextureShader.draw();
-
-        GLTools.checkGLError(TAG, "draw camera passThrough");
 
         for(int i = 0; i < iterations; ++i) {
 
@@ -66,25 +75,15 @@ public class BlurFilter extends SingleShaderFilter {
             blurShader.draw();
 
         }
-        GLTools.checkGLError(TAG, "draw blur shader");
 
         // update bufferTextureID for passThrough
         bufferTextureData.newTextureLocation(firstBuffer.getTextureID());
 
-        // reset original framebufferID
-        firstBuffer.setOldFramebuffer(oldBuffer);
-        firstBuffer.disable();
-
-        GLTools.checkGLError(TAG, "reset frameBuffer");
-
     }
 
-    public BlurFilter(Shader ctt, Shader blur, Shader pt,
-                      FrameBuffer front,
-                      FrameBuffer back,
-                      int iters,
-                      Matrix3x3Data vertMatData,
-                      VertexMatrixUpdater ptVmi) {
+    private BlurFilter(Shader ctt, Shader blur, Shader pt, FrameBuffer front,
+               FrameBuffer back, int iters, Matrix3x3Data vertMatData,
+               VertexMatrixUpdater ptVmi) {
         super(pt, vertMatData, ptVmi);
         cameraToTextureShader = ctt;
         blurShader = blur;

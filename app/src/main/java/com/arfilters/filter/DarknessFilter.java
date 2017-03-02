@@ -19,41 +19,47 @@ package com.arfilters.filter;
 
 import android.opengl.GLES20;
 
-import com.arfilters.GLTools;
 import com.arfilters.shader.Shader;
+import com.arfilters.shader.ShaderGenerator;
 import com.arfilters.shader.data.FloatData;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.arfilters.shader.data.TextureLocationData;
+import com.taylorjs.hproject.arfilters.R;
 
 import static com.arfilters.GLTools.FrameBuffer;
 
-public class DarknessFilter extends SingleShaderFilter {
+class DarknessFilter extends BufferedFilter {
 
-    private static final String TAG = "SingleShaderFilter";
-
-    private static final float[] IDENTITY = new float[] {
-            1f,0f,0f,0f,1f,0f,0f,0f,1f
-    };
+    static DarknessFilter create(ShaderGenerator camGen,
+                                 ShaderGenerator texGen,
+                                 FrameBuffer front,
+                                 FrameBuffer back,
+                                 FrameBuffer camera,
+                                 Matrix3x3Data vertMatData,
+                                 float halfLife,
+                                 float sensitivity,
+                                 VertexMatrixUpdater ptVmi) {
+        camGen.setComputeColor(R.raw.highq_gray);
+        Shader ctt = camGen.generateShader();
+        texGen.setComputeColor(R.raw.pixel_stats);
+        Shader stat = texGen.generateShader();
+        texGen.setComputeColor(R.raw.darkness_passthrough);
+        Shader pt = texGen.generateShader();
+        return new DarknessFilter(ctt, stat, pt, front, back, camera, vertMatData, halfLife, sensitivity, ptVmi);
+    }
 
     @Override
-    public void prepareView() {
-
-        vertexMatrixData.updateData(IDENTITY);
+    protected void renderToBuffers() {
 
         // render camera to texture
         cameraBuffer.enable();
-        // now cameraBuffer has original framebufferID
         cameraToTextureShader.draw();
-
-        GLTools.checkGLError(TAG, "draw camera passThrough");
 
         // do stats for each pixel
         bufferTextureData.newTextureLocation(backBuffer.getTextureID());
 
         frontBuffer.enable();
         statsShader.draw();
-
-        GLTools.checkGLError(TAG, "draw stats shader");
 
         // update bufferTextureID for passThrough
         bufferTextureData.newTextureLocation(frontBuffer.getTextureID());
@@ -63,21 +69,16 @@ public class DarknessFilter extends SingleShaderFilter {
         frontBuffer = backBuffer;
         backBuffer = tmp;
 
-        // reset original framebufferID
-        cameraBuffer.disable();
-
-        GLTools.checkGLError(TAG, "reset frameBuffer");
-
     }
 
-    public DarknessFilter(Shader ctt, Shader stat, Shader pt,
-                          FrameBuffer front,
-                          FrameBuffer back,
-                          FrameBuffer camera,
-                          Matrix3x3Data vertMatData,
-                          float halfLife,
-                          float sensitivity,
-                          VertexMatrixUpdater ptVmi) {
+    private DarknessFilter(Shader ctt, Shader stat, Shader pt,
+                           FrameBuffer front,
+                           FrameBuffer back,
+                           FrameBuffer camera,
+                           Matrix3x3Data vertMatData,
+                           float halfLife,
+                           float sensitivity,
+                           VertexMatrixUpdater ptVmi) {
         super(pt, vertMatData, ptVmi);
         cameraToTextureShader = ctt;
         statsShader = stat;

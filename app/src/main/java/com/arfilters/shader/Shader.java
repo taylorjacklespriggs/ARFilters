@@ -24,12 +24,9 @@ import com.arfilters.GLTools;
 import com.arfilters.shader.data.ShaderData;
 import com.arfilters.shader.data.VertexAttributeData;
 import com.arfilters.shader.variable.Attribute;
-import com.arfilters.shader.variable.Embellishment;
 import com.arfilters.shader.variable.ShaderVariable;
 import com.arfilters.shader.variable.Uniform;
 
-import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Shader {
@@ -40,7 +37,7 @@ public class Shader {
         uniforms.put(name, new Uniform(name, finalProgram, data));
     }
 
-    public void createVertices(String positionName, VertexAttributeData verts,
+    void createVertices(String positionName, VertexAttributeData verts,
                                String texCoordName, VertexAttributeData texCoords,
                                int length) {
         Attribute pos = new Attribute(positionName, finalProgram, verts);

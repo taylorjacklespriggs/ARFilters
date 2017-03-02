@@ -21,27 +21,48 @@ import android.opengl.GLES20;
 
 import com.arfilters.GLTools;
 import com.arfilters.shader.Shader;
+import com.arfilters.shader.ShaderGenerator;
 import com.arfilters.shader.data.FloatData;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.arfilters.shader.data.TextureLocationData;
 import com.arfilters.shader.data.Vector2Data;
+import com.taylorjs.hproject.arfilters.R;
 
 import static com.arfilters.GLTools.FrameBuffer;
 
-public class ToonFilter extends SingleShaderFilter {
+class ToonFilter extends BufferedFilter {
 
-    private static final float[] IDENTITY = new float[] {
-            1f,0f,0f,0f,1f,0f,0f,0f,1f
-    };
+    static ToonFilter create(ShaderGenerator camGen,
+                                    ShaderGenerator texGen,
+                                    FrameBuffer front,
+                                    FrameBuffer back,
+                                    int iters,
+                                    float threshold,
+                                    Matrix3x3Data vertMatData,
+                                    VertexMatrixUpdater ptVmi) {
+
+        // generate edge shader
+        camGen.setComputeColor(R.raw.toon_edges);
+        camGen.setUseDerivatives(true);
+        Shader edge = camGen.generateShader();
+
+        // generate blur shader
+        texGen.setComputeColor(R.raw.toon_blur);
+        Shader blur = texGen.generateShader();
+
+        // create the passThrough shader
+        texGen.setComputeColor(R.raw.toon_passthrough);
+        Shader pt = texGen.generateShader();
+
+        return new ToonFilter(edge, blur, pt, front, back,
+                iters, threshold, vertMatData, ptVmi);
+    }
 
     @Override
-    public void prepareView() {
-
-        vertexMatrixData.updateData(IDENTITY);
+    protected void renderToBuffers() {
 
         // render camera to texture
         firstBuffer.enable();
-        int oldBuffer = firstBuffer.getOldFramebuffer();
 
         edgeShader.draw();
 
@@ -66,13 +87,9 @@ public class ToonFilter extends SingleShaderFilter {
         // update bufferTextureID for passThrough
         bufferTextureData.newTextureLocation(firstBuffer.getTextureID());
 
-        // reset original framebufferID
-        firstBuffer.setOldFramebuffer(oldBuffer);
-        firstBuffer.disable();
-
     }
 
-    public ToonFilter(Shader edge, Shader blur, Shader pt,
+    private ToonFilter(Shader edge, Shader blur, Shader pt,
                       FrameBuffer front,
                       FrameBuffer back,
                       int iters,
@@ -86,7 +103,8 @@ public class ToonFilter extends SingleShaderFilter {
         secondBuffer = back;
         iterations = iters;
 
-        bufferTextureData = new TextureLocationData(GLES20.GL_TEXTURE_2D, 0, firstBuffer.getTextureID());
+        bufferTextureData = new TextureLocationData(GLES20.GL_TEXTURE_2D, 0,
+                firstBuffer.getTextureID());
 
         edgeShader.addUniform("u_Texture", bufferTextureData);
         edgeShader.addUniform("u_Threshold", new FloatData(threshold));

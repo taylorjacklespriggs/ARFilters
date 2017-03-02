@@ -41,8 +41,8 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class FilterGenerator {
 
-    public static final int CAMERA_WIDTH = 1920, CAMERA_HEIGHT = 1080;
-    public static final int BUFFER_WIDTH = CAMERA_WIDTH, BUFFER_HEIGHT = CAMERA_HEIGHT;
+    private static final int CAMERA_WIDTH = 1920, CAMERA_HEIGHT = 1080;
+    private static final int BUFFER_WIDTH = CAMERA_WIDTH, BUFFER_HEIGHT = CAMERA_HEIGHT;
 
     public int getCameraTextureLocation() {
         return cameraTextureLocation;
@@ -50,19 +50,6 @@ public class FilterGenerator {
 
     public ViewInfo getViewInfo() {
         return viewInfo;
-    }
-
-    private ShaderInitializer getInitializer(FilterClass cls) {
-        switch(cls) {
-            case PLAIN:
-            case TEXTURE_WARP:
-                return defaultShaderInitializer;
-            case COLOR_MAP:
-                return colorMapShaderInitializer;
-            case EDGES:
-                return edgeShaderInitializer;
-        }
-        return defaultShaderInitializer;
     }
 
     private Filter generateFilter(FilterType type) {
@@ -92,9 +79,12 @@ public class FilterGenerator {
                         colorMapMatrixData, 600);
         }
 
-        fromCameraShaderGenerator.setInitializer((type.getClassType() == FilterClass.EDGES) ? edgeShaderInitializer : defaultShaderInitializer);
+        fromCameraShaderGenerator.setInitializer(
+                (type.getClassType() == FilterClass.EDGES)
+                        ? edgeShaderInitializer
+                        : defaultShaderInitializer);
 
-        Shader sh = type.generateShader(fromCameraShaderGenerator);
+        Shader sh = type.generateShader(fromCameraShaderGenerator.copy());
         return new SingleShaderFilter(sh, vertexMatrixData, eyeUpdate);
     }
 
@@ -102,112 +92,70 @@ public class FilterGenerator {
      * This shader subtracts noise
      */
     private Filter generateDarknessFilter(float halfLife, float sensitivity) {
-
-        // generate camera to texture shader
-        fromCameraShaderGenerator.setInitializer(defaultShaderInitializer);
-        Shader cttShader = fromCameraShaderGenerator.generateModifiedColorShader(R.raw.highq_gray, false);
-
-        // generate mixing shader
-        fromTextureShaderGenerator.setInitializer(defaultShaderInitializer);
-        Shader statShader = fromTextureShaderGenerator.generateModifiedColorShader(R.raw.pixel_stats, false);
-
-        // create the passThrough shader
-        Shader ptShader = fromTextureShaderGenerator.generateModifiedColorShader(R.raw.darkness_passthrough, false);
-
-        return new DarknessFilter(cttShader, statShader, ptShader, buffers[0][0], buffers[0][1],
-                alternateBuffer, vertexMatrixData, halfLife, sensitivity, eyeUpdate);
+        return DarknessFilter.create(
+                fromCameraShaderGenerator.copy(),
+                fromTextureShaderGenerator.copy(),
+                buffers[0][0],
+                buffers[0][1],
+                alternateBuffer,
+                vertexMatrixData,
+                halfLife,
+                sensitivity,
+                eyeUpdate);
     }
 
     /*
      * Simple 3x3 box blur repeated iters times
      */
     private Filter generateBlurFilter(int iters) {
-
-        // generate camera to texture shader
-        fromCameraShaderGenerator.setInitializer(defaultShaderInitializer);
-        Shader cttShader = fromCameraShaderGenerator.generateDefaultShader();
-
-        // generate mixing shader
-        fromTextureShaderGenerator.setInitializer(defaultShaderInitializer);
-        Shader blurShader = fromTextureShaderGenerator.generateModifiedColorShader(R.raw.blur, false);
-
-        // create the passThrough shader
-        Shader ptShader = fromTextureShaderGenerator.generateDefaultShader();
-
-        return new BlurFilter(cttShader, blurShader, ptShader, buffers[0][0], buffers[0][1],
-                iters, vertexMatrixData, eyeUpdate);
+        return BlurFilter.create(
+                fromCameraShaderGenerator.copy(),
+                fromTextureShaderGenerator.copy(),
+                buffers[0][0],
+                buffers[0][1],
+                iters,
+                vertexMatrixData,
+                eyeUpdate);
     }
 
     /*
      * Toon filter
      */
     private Filter generateToonFilter(int iters, float thresh) {
-
-        // generate edge shader
-        fromCameraShaderGenerator.setInitializer(defaultShaderInitializer);
-        Shader edgeShader = fromCameraShaderGenerator.generateModifiedColorShader(R.raw.toon_edges, true);
-
-        // generate blur shader
-        fromTextureShaderGenerator.setInitializer(defaultShaderInitializer);
-        Shader blurShader = fromTextureShaderGenerator.generateModifiedColorShader(R.raw.toon_blur, false);
-
-        // create the passThrough shader
-        Shader ptShader = fromTextureShaderGenerator.generateModifiedColorShader(R.raw.toon_passthrough, false);
-
-        return new ToonFilter(edgeShader, blurShader, ptShader, buffers[0][0], buffers[0][1],
-                iters, thresh, vertexMatrixData, eyeUpdate);
+        return ToonFilter.create(
+                fromCameraShaderGenerator.copy(),
+                fromTextureShaderGenerator.copy(),
+                buffers[0][0],
+                buffers[0][1],
+                iters,
+                thresh,
+                vertexMatrixData,
+                eyeUpdate);
     }
 
     /*
      * This shader fades with a 16bit monochrome texture
      */
     private Filter generateMonochromeFadingFilter(float halfLife, float brightness) {
-        brightness /= (float)Math.sqrt(3);
-        final float fps = 60f;
-        float r = fps*halfLife; // num frames
-        r = (float)Math.pow(.5, 1./r); // fading factor
-
-        TextureLocationData
-                camLoc = new TextureLocationData(GLES20.GL_TEXTURE_2D, 0, alternateBuffer.getTextureID()),
-                bbLoc = new TextureLocationData(GLES20.GL_TEXTURE_2D, 1, buffers[0][1].getTextureID()),
-                fbLoc = new TextureLocationData(GLES20.GL_TEXTURE_2D, 0, buffers[0][0].getTextureID());
-
-        // generate camera to texture shader
-        fromCameraShaderGenerator.setInitializer(defaultShaderInitializer);
-        Shader cttShader = fromCameraShaderGenerator.generateDefaultShader();
-
-        // generate mixing shader
-        FloatData secondAmount = new FloatData(r);
-        ShaderInitializer si = genShaderInit(camLoc);
-        si.addUniform("u_FadeAmount", secondAmount);
-        si.addUniform("u_AlternateTexture", bbLoc);
-        fromTextureShaderGenerator.setInitializer(si);
-        Shader mixShader = fromTextureShaderGenerator.generateModifiedColorShader(R.raw.monochrome_mixing_texture, false);
-
-        // create the passThrough shader
-        FloatData ceiling = new FloatData(1f/((1f-r)*brightness));
-        si = genShaderInit(fbLoc);
-        si.addUniform("u_Ceiling", ceiling);
-        fromTextureShaderGenerator.setInitializer(si);
-        Shader ptShader = fromTextureShaderGenerator.generateModifiedColorShader(R.raw.monochrome_passthrough, false);
-
-        return new FadingFilter(cttShader, mixShader, ptShader, buffers[0][0],
-                buffers[0][1], alternateBuffer, vertexMatrixData, fbLoc, bbLoc,
+        return FadingFilter.create(
+                fromCameraShaderGenerator.copy(),
+                fromTextureShaderGenerator.copy(),
+                brightness,
+                halfLife,
+                buffers[0][0],
+                buffers[0][1],
+                alternateBuffer,
+                vertexMatrixData,
                 eyeUpdate);
     }
 
     private Filter generateRTTFilter() {
-        // generate camera to texture shader
-        fromCameraShaderGenerator.setInitializer(defaultShaderInitializer);
-        Shader rttShader = fromCameraShaderGenerator.generateDefaultShader();
-
-        // generate passthrough shader
-        ShaderInitializer si = genShaderInit(new TextureLocationData(
-                GLES20.GL_TEXTURE_2D, 0, buffers[0][0].getTextureID()));
-        fromCameraShaderGenerator.setInitializer(si);
-        Shader ptShader = fromCameraShaderGenerator.generateModifiedTextureFragmentShader(R.raw.default_texture, false);
-
-        return new RTTFilter(rttShader, ptShader, buffers[0][0], vertexMatrixData, eyeUpdate);
+        return RTTFilter.create(
+                fromCameraShaderGenerator,
+                fromTextureShaderGenerator,
+                buffers[0][0],
+                vertexMatrixData,
+                eyeUpdate);
     }
 
     public Collection<Filter> generateFilters() {
@@ -219,13 +167,12 @@ public class FilterGenerator {
         filters.add(generateBlurFilter(5));
         filters.add(generateMonochromeFadingFilter(10f/60f, 1f));
         filters.add(generateDarknessFilter(60f/60f, 1f));
-        for(FilterType ft: FilterType.values()) {
+        for(FilterType ft: FilterType.values())
             filters.add(generateFilter(ft));
-        }
         return filters;
     }
 
-    private static final String TAG = "FilterGenerator";
+    private static final String TAG = FilterGenerator.class.getName();
 
     private ShaderInitializer genShaderInit(TextureLocationData texData) {
         ShaderInitializer si = new ShaderInitializer("a_Position",
@@ -276,12 +223,11 @@ public class FilterGenerator {
                 com.arfilters.shader.Precision.MEDIUM);
 
         buffers = new FrameBuffer[2][2];
-        for(FrameBuffer[] fba : buffers) {
-            for(int i = 0; i < fba.length; ++i) {
+        for(FrameBuffer[] fba : buffers)
+            for(int i = 0; i < fba.length; ++i)
                 fba[i] = new GLTools.FrameBuffer(BUFFER_WIDTH, BUFFER_HEIGHT, GLES20.GL_RGBA, GLES20.GL_RGBA,
                         GLES20.GL_UNSIGNED_BYTE, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
-            }
-        }
+
         alternateBuffer = new GLTools.FrameBuffer(BUFFER_WIDTH, BUFFER_HEIGHT, GLES20.GL_RGBA, GLES20.GL_RGBA,
                 GLES20.GL_UNSIGNED_BYTE, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
 
@@ -302,19 +248,22 @@ public class FilterGenerator {
         faceTexCoordData.updateData(VertexData.FACE_TEX_COORDS);
 
         defaultShaderInitializer = genShaderInit();
+        fromCameraShaderGenerator.setInitializer(defaultShaderInitializer);
+        fromTextureShaderGenerator.setInitializer(defaultShaderInitializer);
 
         edgeShaderInitializer = genShaderInit();
+
+        FloatData threshData = new FloatData(.3f);
+        FloatData strictData = new FloatData(20f);
         edgeShaderInitializer.addUniform("u_Threshold", threshData);
         edgeShaderInitializer.addUniform("u_Strictness", strictData);
 
-        colorMapShaderInitializer = genShaderInit();
-        colorMapShaderInitializer.addUniform("u_ColorMapMatrix", colorMapMatrixData);
-
         GLTools.checkGLError(TAG, "initGL");
 
-        fromCameraShaderGenerator.setInitializer(colorMapShaderInitializer);
-        colorMapShader = fromCameraShaderGenerator
-                .generateModifiedColorShader(R.raw.color_map, false);
+        ShaderGenerator tmp = fromCameraShaderGenerator.copy();
+        tmp.setComputeColor(R.raw.color_map);
+        colorMapShader = tmp.generateShader();
+        colorMapShader.addUniform("u_ColorMapMatrix", colorMapMatrixData);
     }
 
     private static final float[][] colorblindMaps = new float[][] {
@@ -361,7 +310,7 @@ public class FilterGenerator {
     private final Shader colorMapShader;
 
     private final ShaderGenerator fromCameraShaderGenerator, fromTextureShaderGenerator;
-    private final ShaderInitializer defaultShaderInitializer, edgeShaderInitializer, colorMapShaderInitializer;
+    private final ShaderInitializer defaultShaderInitializer, edgeShaderInitializer;
 
     private final FrameBuffer[][] buffers;
     private final FrameBuffer alternateBuffer;
@@ -370,9 +319,6 @@ public class FilterGenerator {
     private final VertexMatrixUpdater eyeUpdate;
 
     private final Matrix3x3Data vertexMatrixData, colorMapMatrixData;
-
-    private final FloatData threshData = new FloatData(.3f);
-    private final FloatData strictData = new FloatData(20f);
 
     private final VertexAttributeData faceVertexData = new VertexAttributeData(
             VertexData.FACE_COORD_DIMENSION, VertexData.FACE_NUMBER_VERTICES);

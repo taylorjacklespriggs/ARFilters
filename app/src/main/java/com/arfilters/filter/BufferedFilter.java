@@ -17,25 +17,33 @@
 
 package com.arfilters.filter;
 
+import com.arfilters.GLTools;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.data.Matrix3x3Data;
-import com.arfilters.shader.data.TextureLocationData;
-import com.arfilters.shader.data.VertexAttributeData;
 
-class ColorMapFilter extends SingleShaderFilter {
+abstract class BufferedFilter extends SingleShaderFilter {
 
-    void updateColorMap(float[] colorMap) {
-        colorMapData.updateData(colorMap);
+    private static final float[] IDENTITY = new float[] {
+            1f,0f,0f,0f,1f,0f,0f,0f,1f
+    };
+
+    BufferedFilter(Shader pt, Matrix3x3Data vertMatData,
+                          VertexMatrixUpdater ptVmi) {
+        super(pt, vertMatData, ptVmi);
     }
 
-    ColorMapFilter(Shader sh,
-                   Matrix3x3Data vertMatrix,
-                   VertexMatrixUpdater vmi,
-                   Matrix3x3Data colorMapMat) {
-        super(sh, vertMatrix, vmi);
-        colorMapData = colorMapMat;
+    @Override
+    public final void prepareView() {
+
+        vertexMatrixData.updateData(IDENTITY);
+
+        int mainBuffer = GLTools.getCurrentFramebuffer();
+
+        renderToBuffers();
+
+        GLTools.setFramebuffer(mainBuffer);
+
     }
 
-    private final Matrix3x3Data colorMapData;
-
+    protected abstract void renderToBuffers();
 }

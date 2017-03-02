@@ -41,8 +41,8 @@ class SingleShaderFilter implements Filter {
         vertMatUpdater = vmi;
     }
 
-    protected final Shader shader;
-    protected final Matrix3x3Data vertexMatrixData;
+    private final Shader shader;
+    final Matrix3x3Data vertexMatrixData;
     private final VertexMatrixUpdater vertMatUpdater;
 
 }

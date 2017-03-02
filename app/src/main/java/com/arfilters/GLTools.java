@@ -20,41 +20,29 @@ package com.arfilters;
 import android.opengl.GLES20;
 import android.util.Log;
 
-import com.arfilters.shader.variable.Embellishment;
-
 import javax.microedition.khronos.opengles.GL10;
 
 import static android.opengl.GLU.gluErrorString;
 
 public class GLTools {
 
-    public static class FrameBuffer implements Embellishment {
+    public static class FrameBuffer {
 
         private static final String TAG = "FrameBuffer";
 
-        @Override
         public void enable() {
-            GLES20.glGetIntegerv(GLES20.GL_FRAMEBUFFER_BINDING, oldFramebuffer, 0);
-            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBufferID);
+            GLTools.setFramebuffer(frameBufferID);
         }
 
-        @Override
-        public void disable() {
-            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, oldFramebuffer[0]);
-        }
-
-        private int[] oldFramebuffer;
         private final int frameBufferID, textureID;
         private final int width, height;
         public FrameBuffer(int w, int h, int internalFormat, int format, int storeType,
                            int interpolation, int wrapType) {
 
-            oldFramebuffer = new int[1];
-
             width = w;
             height = h;
             final int fbIdx = 0;
-            int[] tmp = oldFramebuffer;
+            int[] tmp = new int[1];
 
             GLES20.glGenFramebuffers(1, tmp, 0);
 
@@ -92,14 +80,6 @@ public class GLTools {
             return textureID;
         }
 
-        public int getOldFramebuffer() {
-            return oldFramebuffer[0];
-        }
-
-        public void setOldFramebuffer(int fb) {
-            oldFramebuffer[0] = fb;
-        }
-
         public int getWidth() {
             return width;
         }
@@ -107,6 +87,16 @@ public class GLTools {
         public int getHeight() {
             return height;
         }
+    }
+
+    public static int getCurrentFramebuffer() {
+        int[] fb = new int[1];
+        GLES20.glGetIntegerv(GLES20.GL_FRAMEBUFFER_BINDING, fb, 0);
+        return fb[0];
+    }
+
+    public static void setFramebuffer(int fb) {
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fb);
     }
 
     public static void checkGLError(String TAG, String label) {

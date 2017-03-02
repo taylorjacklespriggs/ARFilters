@@ -17,31 +17,45 @@
 
 package com.arfilters.filter;
 
+import android.opengl.GLES20;
+
 import static com.arfilters.GLTools.FrameBuffer;
 import com.arfilters.shader.Shader;
-import com.arfilters.shader.ViewInfo;
+import com.arfilters.shader.ShaderGenerator;
 import com.arfilters.shader.data.Matrix3x3Data;
+import com.arfilters.shader.data.TextureLocationData;
 
-public class RTTFilter extends SingleShaderFilter {
+class RTTFilter extends BufferedFilter {
 
-    private static final float[] IDENTITY = new float[] {
-            1f,0f,0f,0f,1f,0f,0f,0f,1f
-    };
+    static RTTFilter create(ShaderGenerator camGen,
+                            ShaderGenerator texGen,
+                            FrameBuffer fb,
+                            Matrix3x3Data vertMatData,
+                            VertexMatrixUpdater ptVmi) {
 
-    @Override
-    public void prepareView() {
-        vertexMatrixData.updateData(IDENTITY);
-        frameBuffer.enable();
-        rttShader.draw();
-        frameBuffer.disable();
+        // generate camera to texture shader
+        Shader rtt = camGen.generateShader();
+
+        // generate passthrough shader
+        Shader pt = texGen.generateShader();
+
+        return new RTTFilter(rtt, pt, fb, vertMatData, ptVmi);
     }
 
-    public RTTFilter(Shader rtt, Shader pt, FrameBuffer fb,
+    @Override
+    protected void renderToBuffers() {
+        frameBuffer.enable();
+        rttShader.draw();
+    }
+
+    private RTTFilter(Shader rtt, Shader pt, FrameBuffer fb,
                      Matrix3x3Data vertMatData,
                      VertexMatrixUpdater ptVmi) {
         super(pt, vertMatData, ptVmi);
         rttShader = rtt;
         frameBuffer = fb;
+        pt.addUniform("u_Texture", new TextureLocationData(
+                GLES20.GL_TEXTURE_2D, 0, fb.getTextureID()));
     }
 
     private final Shader rttShader;

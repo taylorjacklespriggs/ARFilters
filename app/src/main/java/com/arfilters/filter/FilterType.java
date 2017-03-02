@@ -17,6 +17,7 @@
 
 package com.arfilters.filter;
 
+import com.arfilters.shader.Precision;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.ShaderGenerator;
 import com.taylorjs.hproject.arfilters.R;
@@ -52,19 +53,18 @@ enum FilterType {
 
     public Shader generateShader(ShaderGenerator sg) {
         switch(getClassType()) {
-            case COLOR_MAP:
-                return sg.generateModifiedColorShader(
-                        getFSResourceID(), false);
-            case TEXTURE_WARP:
-                return sg.generateModifiedTextureCoordinatesShader(
-                        getFSResourceID(), com.arfilters.shader.Precision.HIGH);
             case EDGES:
-                return sg.generateModifiedColorShader(getFSResourceID(), true);
+                sg.setUseDerivatives(true);
             case COLOR_MOD:
-                return sg.generateModifiedColorShader(getFSResourceID(), false);
-            default:
-                return sg.generateDefaultShader();
+            case COLOR_MAP:
+                sg.setComputeColor(getFSResourceID());
+                break;
+            case TEXTURE_WARP:
+                sg.setGetTextureCoordinates(getFSResourceID());
+                sg.setFloatPrecision(Precision.HIGH);
+                break;
         }
+        return sg.generateShader();
     }
 
     public FilterClass getClassType() {

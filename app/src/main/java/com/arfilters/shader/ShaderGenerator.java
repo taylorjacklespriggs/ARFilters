@@ -26,39 +26,88 @@ public class ShaderGenerator {
 
     private static final String TAG = "ShaderGenerator";
 
-    public Shader generateDefaultShader() {
-        return generateShader(getTextureFragmentString, getTextureCoordinatesString,
-                computeColorString, mainString, useCamera, useDerivatives, floatPrecision);
-    }
-
-    public Shader generateModifiedTextureFragmentShader(int getTextureFragmentID,
-                                                        boolean useCamera) {
-        return generateShader(resourceLoader.readRawTextFile(getTextureFragmentID),
-                this.getTextureCoordinatesString, this.computeColorString, this.mainString,
-                useCamera, this.useDerivatives, this.floatPrecision);
-    }
-
-    public Shader generateModifiedTextureCoordinatesShader(int getTextureCoordinatesID,
-                                                           Precision floatPrecision) {
-        return generateShader(this.getTextureFragmentString,
-                resourceLoader.readRawTextFile(getTextureCoordinatesID), this.computeColorString,
-                this.mainString, this.useCamera, this.useDerivatives, floatPrecision);
-    }
-
-    public Shader generateModifiedColorShader(int computeColorID, boolean useDerivatives) {
-        return generateShader(this.getTextureFragmentString,
-                this.getTextureCoordinatesString, resourceLoader.readRawTextFile(computeColorID),
-                this.mainString, this.useCamera, useDerivatives, this.floatPrecision);
-    }
-
     public void setInitializer(ShaderInitializer si) {
         initializer = si;
     }
 
-    public ShaderGenerator(ResourceLoader rl, int vertexShader, String getTextureFragmentString,
-                           String getTextureCoordinatesString, String computeColorString,
-                           String mainString, boolean useCamera, boolean useDerivatives,
+    public ShaderGenerator copy() {
+        return new ShaderGenerator(this);
+    }
+
+    public void setUseCamera(boolean useCamera) {
+        this.useCamera = useCamera;
+    }
+
+    public void setUseDerivatives(boolean useDerivatives) {
+        this.useDerivatives = useDerivatives;
+    }
+
+    public void setGetTextureFragment(int getTextureFragment) {
+        this.getTextureFragmentString = resourceLoader.readRawTextFile(getTextureFragment);
+    }
+
+    public void setGetTextureCoordinates(int getTextureCoordinates) {
+        this.getTextureCoordinatesString = resourceLoader.readRawTextFile(getTextureCoordinates);
+    }
+
+    public void setComputeColor(int computeColorString) {
+        this.computeColorString = resourceLoader.readRawTextFile(computeColorString);
+    }
+
+    public void setFloatPrecision(Precision floatPrecision) {
+        this.floatPrecision = floatPrecision;
+    }
+
+    public Shader generateShader() {
+        StringBuilder sb = new StringBuilder();
+        if(useCamera) {
+            sb.append("#extension GL_OES_EGL_image_external : require\n");
+        }
+        if(useDerivatives) {
+
+            sb.append("#extension GL_OES_standard_derivatives : enable\n");
+        }
+        sb.append(floatPrecision.getString("float"));
+        sb.append('\n');
+        sb.append(getTextureFragmentString);
+        sb.append('\n');
+        sb.append(getTextureCoordinatesString);
+        sb.append('\n');
+        sb.append(computeColorString);
+        sb.append('\n');
+        sb.append(mainString);
+        String shader = sb.toString();
+        int fs = GLTools.loadGLShader(TAG, GLES20.GL_FRAGMENT_SHADER, shader);
+
+        Shader sh = new Shader(vertexShader, fs);
+        if(initializer != null) {
+            initializer.initializeShader(sh);
+        }
+        return sh;
+    }
+
+    public ShaderGenerator(ResourceLoader rl,
+                           int vertexShader,
+                           String getTextureFragmentString,
+                           String getTextureCoordinatesString,
+                           String computeColorString,
+                           String mainString,
+                           boolean useCamera,
+                           boolean useDerivatives,
                            Precision floatPrecision) {
+        init(rl, vertexShader, getTextureFragmentString,
+                getTextureCoordinatesString, computeColorString, mainString,
+                useCamera, useDerivatives, floatPrecision, null);
+    }
+
+    private ShaderGenerator(ShaderGenerator s) {
+        init(s.resourceLoader, s.vertexShader, s.getTextureFragmentString, s.getTextureCoordinatesString, s.computeColorString, s.mainString, s.useCamera, s.useDerivatives, s.floatPrecision, s.initializer);
+    }
+
+    private void init(ResourceLoader rl, int vertexShader, String getTextureFragmentString,
+                      String getTextureCoordinatesString, String computeColorString,
+                      String mainString, boolean useCamera, boolean useDerivatives,
+                      Precision floatPrecision, ShaderInitializer si) {
         this.resourceLoader = rl;
         this.vertexShader = vertexShader;
         this.getTextureFragmentString = getTextureFragmentString;
@@ -68,35 +117,7 @@ public class ShaderGenerator {
         this.useCamera = useCamera;
         this.useDerivatives = useDerivatives;
         this.floatPrecision = floatPrecision;
-        this.initializer = null;
-    }
-
-    private Shader generateShader(String gtfs, String gtcs, String ccs, String ms,
-                                         boolean uc, boolean ud, Precision fp) {
-        StringBuilder sb = new StringBuilder();
-        if(uc) {
-            sb.append("#extension GL_OES_EGL_image_external : require\n");
-        }
-        if(ud) {
-            sb.append("#extension GL_OES_standard_derivatives : enable\n");
-        }
-        sb.append(fp.getString("float"));
-        sb.append('\n');
-        sb.append(gtfs);
-        sb.append('\n');
-        sb.append(gtcs);
-        sb.append('\n');
-        sb.append(ccs);
-        sb.append('\n');
-        sb.append(ms);
-        String shader = sb.toString();
-        int fs = GLTools.loadGLShader(TAG, GLES20.GL_FRAGMENT_SHADER, shader);
-
-        Shader sh = new Shader(vertexShader, fs);
-        if(initializer != null) {
-            initializer.initializeShader(sh);
-        }
-        return sh;
+        this.initializer = si;
     }
 
     private ResourceLoader resourceLoader;

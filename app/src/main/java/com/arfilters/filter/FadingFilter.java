@@ -17,39 +17,60 @@
 
 package com.arfilters.filter;
 
-import com.arfilters.GLTools;
+import android.opengl.GLES20;
+
 import com.arfilters.shader.Shader;
+import com.arfilters.shader.ShaderGenerator;
+import com.arfilters.shader.data.FloatData;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.arfilters.shader.data.TextureLocationData;
+import com.taylorjs.hproject.arfilters.R;
 
 import static com.arfilters.GLTools.FrameBuffer;
 
-public class FadingFilter extends SingleShaderFilter {
+class FadingFilter extends BufferedFilter {
 
-    private static final String TAG = "SingleShaderFilter";
+    static FadingFilter create(ShaderGenerator camGen,
+                                      ShaderGenerator texGen,
+                                      float brightness,
+                                      float halfLife,
+                                      FrameBuffer front,
+                                      FrameBuffer back,
+                                      FrameBuffer camera,
+                                      Matrix3x3Data vertMatData,
+                                      VertexMatrixUpdater ptVmi) {
+        brightness /= (float)Math.sqrt(3);
+        final float fps = 60f;
+        float r = fps*halfLife; // num frames
+        r = (float)Math.pow(.5, 1./r); // fading factor
 
-    private static final float[] IDENTITY = new float[] {
-            1f,0f,0f,0f,1f,0f,0f,0f,1f
-    };
+        // generate camera to texture shader
+        Shader ctt = camGen.generateShader();
+
+        // generate mixing shader
+        texGen.setComputeColor(R.raw.monochrome_mixing_texture);
+        Shader mix = texGen.generateShader();
+
+        // create the passThrough shader
+        texGen.setComputeColor(R.raw.monochrome_passthrough);
+        Shader pt = texGen.generateShader();
+
+        return new FadingFilter(ctt, mix, pt, r, brightness, front, back,
+                camera, vertMatData, ptVmi);
+    }
 
     @Override
-    public void prepareView() {
-
-        vertexMatrixData.updateData(IDENTITY);
+    protected void renderToBuffers() {
 
         // render camera to texture
         cameraBuffer.enable();
         // now cameraBuffer has original framebufferID
         cameraToTextureShader.draw();
 
-        GLTools.checkGLError(TAG, "draw camera passthrough");
-
         // mix cameraBuffer and backBuffer
         backTextureData.newTextureLocation(backBuffer.getTextureID());
         frontBuffer.enable();
         mixingShader.draw();
-
-        GLTools.checkGLError(TAG, "draw mixing shader");
 
         // update frontTextureID for passThrough
         frontTextureData.newTextureLocation(frontBuffer.getTextureID());
@@ -59,27 +80,33 @@ public class FadingFilter extends SingleShaderFilter {
         frontBuffer = backBuffer;
         backBuffer = tmp;
 
-        // reset original framebufferID
-        cameraBuffer.disable();
-
-        GLTools.checkGLError(TAG, "reset frameBuffer");
-
     }
 
-    public FadingFilter(Shader ctt, Shader mix, Shader pt, FrameBuffer front,
-                        FrameBuffer back, FrameBuffer camera,
-                        Matrix3x3Data vertMatData,
-                        TextureLocationData frontTexture,
-                        TextureLocationData backTexture,
-                        VertexMatrixUpdater ptVmi) {
+    private FadingFilter(Shader ctt, Shader mix, Shader pt, float r,
+                         float brightness, FrameBuffer front, FrameBuffer back,
+                         FrameBuffer camera, Matrix3x3Data vertMatData,
+                         VertexMatrixUpdater ptVmi) {
         super(pt, vertMatData, ptVmi);
         cameraToTextureShader = ctt;
         mixingShader = mix;
         frontBuffer = front;
         backBuffer = back;
         cameraBuffer = camera;
-        frontTextureData = frontTexture;
-        backTextureData = backTexture;
+        frontTextureData = new TextureLocationData(
+                GLES20.GL_TEXTURE_2D, 0, front.getTextureID());
+        backTextureData = new TextureLocationData(
+                GLES20.GL_TEXTURE_2D, 1, back.getTextureID());
+
+        TextureLocationData camLoc = new TextureLocationData(
+                GLES20.GL_TEXTURE_2D, 0, camera.getTextureID());
+        FloatData secondAmount = new FloatData(r);
+        mixingShader.addUniform("u_FadeAmount", secondAmount);
+        mixingShader.addUniform("u_Texture", camLoc);
+        mixingShader.addUniform("u_AlternateTexture", backTextureData);
+
+        FloatData ceiling = new FloatData(1f/((1f-r)*brightness));
+        pt.addUniform("u_Texture", frontTextureData);
+        pt.addUniform("u_Ceiling", ceiling);
     }
 
     private final Shader cameraToTextureShader, mixingShader;
