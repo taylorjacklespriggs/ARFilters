@@ -29,5 +29,5 @@ void computeColor(out vec4 color, in vec2 texCoord) {
     float gLength = length(vec2(dFdx(color.r), dFdy(color.r)))
                     + length(vec2(dFdx(color.g), dFdy(color.g)))
                     + length(vec2(dFdx(color.b), dFdy(color.b)));
-    color.a = step(u_Threshold, gLength);
+    color.a = step(u_Threshold, gLength)/255.;
 }

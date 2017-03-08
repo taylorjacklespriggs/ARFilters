@@ -33,13 +33,14 @@ import static com.arfilters.GLTools.FrameBuffer;
 class ToonFilter extends BufferedFilter {
 
     static ToonFilter create(ShaderGenerator camGen,
-                                    ShaderGenerator texGen,
-                                    FrameBuffer front,
-                                    FrameBuffer back,
-                                    int iters,
-                                    float threshold,
-                                    Matrix3x3Data vertMatData,
-                                    VertexMatrixUpdater ptVmi) {
+                             ShaderGenerator texGen,
+                             FrameBuffer front,
+                             FrameBuffer back,
+                             int iters,
+                             float threshold,
+                             int lower,
+                             Matrix3x3Data vertMatData,
+                             VertexMatrixUpdater ptVmi) {
 
         // generate edge shader
         camGen.setComputeColor(R.raw.toon_edges);
@@ -55,7 +56,7 @@ class ToonFilter extends BufferedFilter {
         Shader pt = texGen.generateShader();
 
         return new ToonFilter(edge, blur, pt, front, back,
-                iters, threshold, vertMatData, ptVmi);
+                iters, threshold, lower, vertMatData, ptVmi);
     }
 
     @Override
@@ -71,6 +72,8 @@ class ToonFilter extends BufferedFilter {
             // do horizontal blur
             bufferTextureData.newTextureLocation(firstBuffer.getTextureID());
             deltaData.updateData(new float[] {1f/firstBuffer.getWidth(), 0f});
+            lowerData.updateData(0f);
+            alphaScaleData.updateData(1f);
 
             secondBuffer.enable();
             blurShader.draw();
@@ -78,6 +81,8 @@ class ToonFilter extends BufferedFilter {
             // do vertical blur
             bufferTextureData.newTextureLocation(secondBuffer.getTextureID());
             deltaData.updateData(new float[] {0f, 1f/secondBuffer.getHeight()});
+            lowerData.updateData(lowerNumber/255f);
+            alphaScaleData.updateData(1f/lowerNumber);
 
             firstBuffer.enable();
             blurShader.draw();
@@ -89,13 +94,9 @@ class ToonFilter extends BufferedFilter {
 
     }
 
-    private ToonFilter(Shader edge, Shader blur, Shader pt,
-                      FrameBuffer front,
-                      FrameBuffer back,
-                      int iters,
-                      float threshold,
-                      Matrix3x3Data vertMatData,
-                      VertexMatrixUpdater ptVmi) {
+    private ToonFilter(Shader edge, Shader blur, Shader pt, FrameBuffer front,
+                       FrameBuffer back, int iters, float threshold, int lower,
+                       Matrix3x3Data vertMatData, VertexMatrixUpdater ptVmi) {
         super(pt, vertMatData, ptVmi);
         edgeShader = edge;
         blurShader = blur;
@@ -115,12 +116,19 @@ class ToonFilter extends BufferedFilter {
 
         blurShader.addUniform("u_Texture", bufferTextureData);
         blurShader.addUniform("u_Delta", deltaData);
+
+        lowerNumber = lower;
+        blurShader.addUniform("u_Lower", lowerData = new FloatData(0f));
+        blurShader.addUniform("u_AlphaScale", alphaScaleData = new FloatData(1f));
     }
 
     private final Shader edgeShader, blurShader;
     private FrameBuffer firstBuffer, secondBuffer;
     private final TextureLocationData
             bufferTextureData;
+
+    private final FloatData lowerData, alphaScaleData;
+    private final int lowerNumber;
 
     private Vector2Data deltaData;
 

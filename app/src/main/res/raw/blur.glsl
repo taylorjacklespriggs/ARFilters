@@ -17,18 +17,30 @@
  */
 
 /*
- *  Computes a horizontal horiz_blur.
+ *  Computes a 7-width gaussian blur along one axis with sigma=1.5
+ *  Credit http://dev.theomader.com/gaussian-kernel-calculator/
  */
 
 uniform vec2 u_Delta;
 
 void computeColor(out vec4 color, in vec2 texCoord) {
     vec4 frag;
-    //getTextureFragment(frag, texCoord);
-    //color = frag;
+    const float gKernel0 = 0.266346,
+                gKernel1 = 0.215007,
+                gKernel2 = 0.113085,
+                gKernel3 = 0.038735;
+    getTextureFragment(frag, texCoord);
+    color = frag*gKernel0;
     getTextureFragment(frag, texCoord+u_Delta);
-    color = frag;
+    color += frag*gKernel1;
     getTextureFragment(frag, texCoord-u_Delta);
-    color += frag;
-    color /= 2.;
+    color += frag*gKernel1;
+    getTextureFragment(frag, texCoord+2.*u_Delta);
+    color += frag*gKernel2;
+    getTextureFragment(frag, texCoord-2.*u_Delta);
+    color += frag*gKernel2;
+    getTextureFragment(frag, texCoord+3.*u_Delta);
+    color += frag*gKernel3;
+    getTextureFragment(frag, texCoord-3.*u_Delta);
+    color += frag*gKernel3;
 }

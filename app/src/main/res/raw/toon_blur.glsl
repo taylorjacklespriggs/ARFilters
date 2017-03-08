@@ -20,29 +20,27 @@
  *  Computes a horizontal horiz_blur.
  */
 
-uniform sampler2D u_Edges;
-
 uniform vec2 u_Delta;
+uniform float u_Lower;
+uniform float u_AlphaScale;
 
-void calcCol(inout vec4 color, inout float count, in vec2 texCoord) {
+void calcCol(inout vec4 color, in vec2 texCoord) {
     vec4 frag;
     getTextureFragment(frag, texCoord);
-    if(frag.a == 0.) {
-        color.rgb += frag.rgb;
-        color.a = max(color.a, frag.a);
-        count += 1.;
-    }
+    color += frag;
 }
 
 void computeColor(out vec4 color, in vec2 texCoord) {
-    getTextureFragment(color, texCoord);
-    vec4 frag;
-    float count = 0.;
     color = vec4(0.);
-    calcCol(color, count, texCoord);
-    calcCol(color, count, texCoord+u_Delta);
-    calcCol(color, count, texCoord-u_Delta);
-    if(count > 1.) {
-        color.rgb /= count;
+    calcCol(color, texCoord);
+    calcCol(color, texCoord+u_Delta);
+    calcCol(color, texCoord-u_Delta);
+    calcCol(color, texCoord+2.*u_Delta);
+    calcCol(color, texCoord-2.*u_Delta);
+    color.rgb /= 5.;
+    if(color.a < u_Lower) {
+        color.a = 0.;
+    } else {
+        color.a *= u_AlphaScale;
     }
 }

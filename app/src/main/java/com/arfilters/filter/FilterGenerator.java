@@ -121,7 +121,7 @@ public class FilterGenerator {
     /*
      * Toon filter
      */
-    private Filter generateToonFilter(int iters, float thresh) {
+    private Filter generateToonFilter(int iters, float thresh, int lower) {
         return ToonFilter.create(
                 fromCameraShaderGenerator.copy(),
                 fromTextureShaderGenerator.copy(),
@@ -129,6 +129,7 @@ public class FilterGenerator {
                 buffers[0][1],
                 iters,
                 thresh,
+                lower,
                 vertexMatrixData,
                 eyeUpdate);
     }
@@ -161,10 +162,8 @@ public class FilterGenerator {
     public Collection<Filter> generateFilters() {
         ArrayList<Filter> filters = new ArrayList<>();
         filters.add(generateRTTFilter());
-        filters.add(generateToonFilter(5, .025f));
-        filters.add(generateToonFilter(5, .05f));
-        filters.add(generateToonFilter(5, .1f));
-        filters.add(generateBlurFilter(5));
+        filters.add(generateToonFilter(1, .075f, 9));
+        filters.add(generateBlurFilter(2));
         filters.add(generateMonochromeFadingFilter(10f/60f, 1f));
         filters.add(generateDarknessFilter(60f/60f, 1f));
         for(FilterType ft: FilterType.values())

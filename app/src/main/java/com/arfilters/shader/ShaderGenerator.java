@@ -64,7 +64,6 @@ public class ShaderGenerator {
             sb.append("#extension GL_OES_EGL_image_external : require\n");
         }
         if(useDerivatives) {
-
             sb.append("#extension GL_OES_standard_derivatives : enable\n");
         }
         sb.append(floatPrecision.getString("float"));
