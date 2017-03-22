@@ -55,7 +55,7 @@ enum FilterType {
 
     public String getName() {
         StringBuilder sb = new StringBuilder();
-        for(String word: this.toString().split(" ")) {
+        for(String word: this.toString().split("_")) {
             sb.append(Character.toTitleCase(word.charAt(0)));
             if(word.length() > 1)
                 sb.append(word.substring(1).toLowerCase());

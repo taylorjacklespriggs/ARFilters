@@ -60,7 +60,7 @@ public class FilterGenerator {
                     eyeUpdate,
                     colorMapMatrixData,
                     colorblindMaps[type.getColorblindIndex()],
-                    type.toString());
+                    type.getName());
         }
 
         switch(type) {

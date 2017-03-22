@@ -194,11 +194,16 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
         GLTools.checkGLError(TAG, "initGL");
     }
 
+    private void applyFilter(Filter f) {
+        currentFilter = f;
+        Log.i(TAG, "switched to "+f.getName()+" filter");
+    }
+
     private void nextFilter() {
         if(filterIterator == null || !filterIterator.hasNext()) {
             filterIterator = filters.iterator();
         }
-        currentFilter = filterIterator.next();
+        applyFilter(filterIterator.next());
     }
 
     @Override
@@ -253,10 +258,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
 
     @Override
     public void onCardboardTrigger() {
-        Log.i(TAG, "onCardboardTrigger");
-
         nextFilter();
-
         vibrator.vibrate(50);
     }
 
