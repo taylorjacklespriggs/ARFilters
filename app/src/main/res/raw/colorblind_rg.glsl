@@ -22,9 +22,15 @@
  *  getFragment(vec2) should be specified.
  */
 
-uniform mat3 u_ColorMapMatrix;
-
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
-    color.rgb *= u_ColorMapMatrix;
+    if(2.*color.b < min(color.r, color.g)) {
+        if(color.r > color.g) {
+            color.r += color.g;
+            color.g = 0.;
+        } else {
+            color.g += color.r;
+            color.r = 0.;
+        }
+    }
 }

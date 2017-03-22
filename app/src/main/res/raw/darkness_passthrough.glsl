@@ -20,15 +20,35 @@
  *  Takes red to be MSB and green to be LSB of grayscale color.
  */
 
- uniform sampler2D u_BufferTexture;
+uniform sampler2D u_BufferTexture;
 
- uniform float u_Scale;
- uniform float u_Sensitivity;
+uniform float u_Scale;
+uniform float u_VarScale;
 
- void getGray(out highp float varOut, in vec2 varIn) {
+void getGray(out highp float varOut, in vec2 varIn) {
     varOut = varIn.r*255.;
     varOut += varIn.g*255./256.;
- }
+}
+
+float erf(float x) {
+    const float
+        a1 = 0.278393,
+        a2 = 0.230389,
+        a3 = 0.000972,
+        a4 = 0.078108;
+    float r = 1., x0 = x;
+    r += a1*x;
+    x *= x0;
+    r += a2*x;
+    x *= x0;
+    r += a3*x;
+    x *= x0;
+    return 1.-1./pow(r + a4*x, 4.);
+}
+
+void sigmoid(inout highp float gray, in highp float avg, in highp float var) {
+    gray = .5+.5*erf(0.7071068*(gray-avg)/sqrt(var));
+}
 
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
@@ -40,13 +60,7 @@ void computeColor(out vec4 color, in vec2 texCoord) {
     getGray(avg, noise.rg);
     avg *= u_Scale;
     getGray(var, noise.ba);
-    var *= u_Scale;
-    var /= u_Sensitivity;
-    if(var < 0.) {
-        color.rgb = vec3(1.,vec2(0.));
-    } else {
-        gray -= avg;
-        gray = 1.-exp(-gray*gray/(2.*var));
-        color.rgb = vec3(gray);
-    }
+    var *= u_VarScale;
+    sigmoid(gray, avg, var);
+    color.rgb = vec3(gray);
 }

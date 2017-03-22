@@ -214,16 +214,25 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
         }
     }
 
+    int frameCount = 0;
+    long time = System.nanoTime();
     @Override
     public void onNewFrame(HeadTransform headTransform) {
-
         if(cameraSurfaceTexture != null) {
+            long tmp = System.nanoTime();
+            if(tmp - time > 1000000000L) {
+                Log.i(TAG, frameCount+"fps");
+                time = tmp;
+                frameCount = 0;
+            }
+
             // Update the camera preview texture
             cameraSurfaceTexture.updateTexImage();
 
             currentFilter.prepareView();
 
             GLTools.checkGLError(TAG, "onReadyToDraw");
+            ++frameCount;
         }
     }
 

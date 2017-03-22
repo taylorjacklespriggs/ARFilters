@@ -44,6 +44,8 @@ enum FilterType {
     ACHROMATOMALY,
 
 
+    COLORBLIND_RG,
+
     INVERTED,
 
     GRAY_EDGES,
@@ -76,6 +78,7 @@ enum FilterType {
             case HUE_ROTATION:
             case ANAGLYPH:
                 return FilterClass.COLOR_MAP;
+            case COLORBLIND_RG:
             case INVERTED:
                 return FilterClass.COLOR_MOD;
             case GRAY_EDGES:
@@ -102,6 +105,8 @@ enum FilterType {
                 return R.raw.passthrough;
             case ZOOM:
                 return R.raw.zoomed_texture_coordinates;
+            case COLORBLIND_RG:
+                return R.raw.colorblind_rg;
             case INVERTED:
                 return R.raw.inverted;
             case GRAY_EDGES:

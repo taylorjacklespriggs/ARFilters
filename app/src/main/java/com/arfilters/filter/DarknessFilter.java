@@ -99,11 +99,13 @@ class DarknessFilter extends BufferedFilter {
         final float fps = 60f;
         float frames = fps*halfLife; // num frames
         float fadeAmount = (float)Math.pow(.5, 1./frames); // fading factor
-        FloatData scale = new FloatData(1f-fadeAmount);
+        float rawScale = 1f-fadeAmount;
+        FloatData scale = new FloatData(rawScale);
 
         statsShader.addUniform("u_FadeAmount", new FloatData(fadeAmount));
+
         pt.addUniform("u_Scale", scale);
-        pt.addUniform("u_Sensitivity", new FloatData(sensitivity));
+        pt.addUniform("u_VarScale", new FloatData(rawScale/sensitivity));
     }
 
     private final Shader cameraToTextureShader, statsShader;

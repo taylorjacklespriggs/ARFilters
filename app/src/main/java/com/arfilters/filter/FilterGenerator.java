@@ -162,10 +162,13 @@ public class FilterGenerator {
     public Collection<Filter> generateFilters() {
         ArrayList<Filter> filters = new ArrayList<>();
         filters.add(generateRTTFilter());
-        filters.add(generateToonFilter(1, .1f, 5));
-        filters.add(generateBlurFilter(2));
-        filters.add(generateMonochromeFadingFilter(10f/60f, 1f));
-        filters.add(generateDarknessFilter(60f/60f, 1f));
+        filters.add(generateToonFilter(1, .175f, 4));
+        filters.add(generateMonochromeFadingFilter(10f/60f, 4f));
+        filters.add(generateMonochromeFadingFilter(10f/60f, 8f));
+        filters.add(generateMonochromeFadingFilter(10f/60f, 16f));
+        filters.add(generateDarknessFilter(1, 1f));
+        filters.add(generateDarknessFilter(1, 2f));
+        filters.add(generateDarknessFilter(1, 4f));
         for(FilterType ft: FilterType.values())
             filters.add(generateFilter(ft));
         return filters;

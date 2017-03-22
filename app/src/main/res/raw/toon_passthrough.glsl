@@ -20,11 +20,17 @@
  *  Does not modify input color.
  */
 
+#define NCOLORS 16.
+#define CLAMPCOLOR(x) x -= mod(x, 1./NCOLORS)
+
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
     if(color.a > .0) {
         color = vec4(vec3(0.), 1.);
     } else {
+        CLAMPCOLOR(color.r);
+        CLAMPCOLOR(color.g);
+        CLAMPCOLOR(color.b);
         color.a = 1.;
     }
 }
