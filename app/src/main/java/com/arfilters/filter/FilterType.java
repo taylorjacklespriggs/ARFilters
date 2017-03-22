@@ -53,6 +53,17 @@ enum FilterType {
     CHROMATIC_EDGES,
     ENHANCED_EDGES;
 
+    public String getName() {
+        StringBuilder sb = new StringBuilder();
+        for(String word: this.toString().split(" ")) {
+            sb.append(Character.toTitleCase(word.charAt(0)));
+            if(word.length() > 1)
+                sb.append(word.substring(1).toLowerCase());
+            sb.append(' ');
+        }
+        return sb.toString();
+    }
+
     public Shader generateShader(ShaderGenerator sg) {
         switch(getClassType()) {
             case EDGES:

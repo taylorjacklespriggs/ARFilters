@@ -79,7 +79,7 @@ class DarknessFilter extends BufferedFilter {
                            float halfLife,
                            float sensitivity,
                            VertexMatrixUpdater ptVmi) {
-        super(pt, vertMatData, ptVmi);
+        super(pt, vertMatData, ptVmi, "Darkness");
         cameraToTextureShader = ctt;
         statsShader = stat;
         frontBuffer = front;

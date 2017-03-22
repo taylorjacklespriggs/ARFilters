@@ -84,7 +84,7 @@ class BlurFilter extends BufferedFilter {
     private BlurFilter(Shader ctt, Shader blur, Shader pt, FrameBuffer front,
                FrameBuffer back, int iters, Matrix3x3Data vertMatData,
                VertexMatrixUpdater ptVmi) {
-        super(pt, vertMatData, ptVmi);
+        super(pt, vertMatData, ptVmi, "Blur");
         cameraToTextureShader = ctt;
         blurShader = blur;
         firstBuffer = front;

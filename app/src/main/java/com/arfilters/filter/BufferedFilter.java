@@ -28,8 +28,8 @@ abstract class BufferedFilter extends SingleShaderFilter {
     };
 
     BufferedFilter(Shader pt, Matrix3x3Data vertMatData,
-                          VertexMatrixUpdater ptVmi) {
-        super(pt, vertMatData, ptVmi);
+                   VertexMatrixUpdater ptVmi, String nm) {
+        super(pt, vertMatData, ptVmi, nm);
     }
 
     @Override

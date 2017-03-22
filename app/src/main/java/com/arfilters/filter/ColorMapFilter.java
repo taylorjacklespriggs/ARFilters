@@ -31,8 +31,9 @@ class ColorMapFilter extends SingleShaderFilter {
     ColorMapFilter(Shader sh,
                    Matrix3x3Data vertMatrix,
                    VertexMatrixUpdater vmi,
-                   Matrix3x3Data colorMapMat) {
-        super(sh, vertMatrix, vmi);
+                   Matrix3x3Data colorMapMat,
+                   String nm) {
+        super(sh, vertMatrix, vmi, nm);
         colorMapData = colorMapMat;
     }
 

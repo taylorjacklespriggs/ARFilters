@@ -24,6 +24,11 @@ import com.arfilters.shader.data.Matrix3x3Data;
 class SingleShaderFilter implements Filter {
 
     @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
     public void prepareView() {
     }
 
@@ -35,14 +40,17 @@ class SingleShaderFilter implements Filter {
 
     SingleShaderFilter(Shader sh,
                        Matrix3x3Data vertMatData,
-                       VertexMatrixUpdater vmi) {
+                       VertexMatrixUpdater vmi,
+                       String nm) {
         shader = sh;
         vertexMatrixData = vertMatData;
         vertMatUpdater = vmi;
+        name = nm;
     }
 
     private final Shader shader;
     final Matrix3x3Data vertexMatrixData;
     private final VertexMatrixUpdater vertMatUpdater;
+    private final String name;
 
 }

@@ -97,7 +97,7 @@ class ToonFilter extends BufferedFilter {
     private ToonFilter(Shader edge, Shader blur, Shader pt, FrameBuffer front,
                        FrameBuffer back, int iters, float threshold, int lower,
                        Matrix3x3Data vertMatData, VertexMatrixUpdater ptVmi) {
-        super(pt, vertMatData, ptVmi);
+        super(pt, vertMatData, ptVmi, "Toon");
         edgeShader = edge;
         blurShader = blur;
         firstBuffer = front;

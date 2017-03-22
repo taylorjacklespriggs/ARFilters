@@ -24,6 +24,11 @@ import com.arfilters.shader.data.Matrix3x3Data;
 class ColorblindFilter extends ColorMapFilter {
 
     @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
     public void prepareView() {
         updateColorMap(colorMap);
     }
@@ -32,10 +37,13 @@ class ColorblindFilter extends ColorMapFilter {
                      Matrix3x3Data vertMatrix,
                      VertexMatrixUpdater vmi,
                      Matrix3x3Data colorMapMat,
-                     float[] cbMap) {
-        super(sh, vertMatrix, vmi, colorMapMat);
+                     float[] cbMap,
+                     String nm) {
+        super(sh, vertMatrix, vmi, colorMapMat, nm);
         colorMap = cbMap;
+        name = nm;
     }
 
     private float[] colorMap;
+    private final String name;
 }

@@ -21,6 +21,8 @@ import com.arfilters.shader.ViewInfo;
 
 public interface Filter {
 
+    String getName();
+
     void prepareView();
 
     void drawEye(ViewInfo vi);

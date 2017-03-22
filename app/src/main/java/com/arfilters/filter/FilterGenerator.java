@@ -59,7 +59,8 @@ public class FilterGenerator {
                     vertexMatrixData,
                     eyeUpdate,
                     colorMapMatrixData,
-                    colorblindMaps[type.getColorblindIndex()]);
+                    colorblindMaps[type.getColorblindIndex()],
+                    type.toString());
         }
 
         switch(type) {
@@ -85,7 +86,7 @@ public class FilterGenerator {
                         : defaultShaderInitializer);
 
         Shader sh = type.generateShader(fromCameraShaderGenerator.copy());
-        return new SingleShaderFilter(sh, vertexMatrixData, eyeUpdate);
+        return new SingleShaderFilter(sh, vertexMatrixData, eyeUpdate, type.getName());
     }
 
     /*

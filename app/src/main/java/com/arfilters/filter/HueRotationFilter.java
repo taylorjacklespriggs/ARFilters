@@ -32,7 +32,7 @@ class HueRotationFilter extends ColorMapFilter {
                       VertexMatrixUpdater vmi,
                       Matrix3x3Data colorMapMat,
                       int loop) {
-        super(sh, vertMatrix, vmi, colorMapMat);
+        super(sh, vertMatrix, vmi, colorMapMat, FilterType.HUE_ROTATION.getName());
         count = 0;
         loopFrames = loop;
     }
@@ -41,7 +41,7 @@ class HueRotationFilter extends ColorMapFilter {
         final float cos=(float)Math.cos(hueAngle),
                 sin=(float)Math.sin(hueAngle);
 
-        return new float[]{
+        float[] mat = new float[]{
 
                 lr + cos * (1 - lr) + sin * -lr,
                 lg + cos * -lg + sin * -lg,
@@ -56,6 +56,16 @@ class HueRotationFilter extends ColorMapFilter {
                 lb + (float)Math.cos(1 - lb) + sin * lb,
 
         };
+        // ensure each row sums to 1
+        for(int i = 0; i < mat.length; i += 3) {
+            float sm = 0f;
+            for(int j = i; j < i+3; ++j)
+                sm += mat[j];
+            sm = 1f/sm;
+            for(int j = i; j < i+3; ++j)
+                mat[j] *= sm;
+        }
+        return mat;
     }
 
     private int count;

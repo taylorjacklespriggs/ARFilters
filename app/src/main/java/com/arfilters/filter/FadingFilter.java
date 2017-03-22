@@ -31,14 +31,14 @@ import static com.arfilters.GLTools.FrameBuffer;
 class FadingFilter extends BufferedFilter {
 
     static FadingFilter create(ShaderGenerator camGen,
-                                      ShaderGenerator texGen,
-                                      float brightness,
-                                      float halfLife,
-                                      FrameBuffer front,
-                                      FrameBuffer back,
-                                      FrameBuffer camera,
-                                      Matrix3x3Data vertMatData,
-                                      VertexMatrixUpdater ptVmi) {
+                               ShaderGenerator texGen,
+                               float brightness,
+                               float halfLife,
+                               FrameBuffer front,
+                               FrameBuffer back,
+                               FrameBuffer camera,
+                               Matrix3x3Data vertMatData,
+                               VertexMatrixUpdater ptVmi) {
         brightness /= (float)Math.sqrt(3);
         final float fps = 60f;
         float r = fps*halfLife; // num frames
@@ -86,7 +86,7 @@ class FadingFilter extends BufferedFilter {
                          float brightness, FrameBuffer front, FrameBuffer back,
                          FrameBuffer camera, Matrix3x3Data vertMatData,
                          VertexMatrixUpdater ptVmi) {
-        super(pt, vertMatData, ptVmi);
+        super(pt, vertMatData, ptVmi, "Fading");
         cameraToTextureShader = ctt;
         mixingShader = mix;
         frontBuffer = front;

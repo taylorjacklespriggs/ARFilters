@@ -51,7 +51,7 @@ class RTTFilter extends BufferedFilter {
     private RTTFilter(Shader rtt, Shader pt, FrameBuffer fb,
                      Matrix3x3Data vertMatData,
                      VertexMatrixUpdater ptVmi) {
-        super(pt, vertMatData, ptVmi);
+        super(pt, vertMatData, ptVmi, "RTT");
         rttShader = rtt;
         frameBuffer = fb;
         pt.addUniform("u_Texture", new TextureLocationData(
