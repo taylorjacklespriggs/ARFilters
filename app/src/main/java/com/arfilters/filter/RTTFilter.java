@@ -39,7 +39,7 @@ class RTTFilter extends BufferedFilter {
         // generate passthrough shader
         Shader pt = texGen.generateShader();
 
-        return new RTTFilter(rtt, pt, fb, vertMatData, ptVmi);
+        return new RTTFilter(rtt, pt, fb, vertMatData, ptVmi, "RTT");
     }
 
     @Override
@@ -48,10 +48,14 @@ class RTTFilter extends BufferedFilter {
         rttShader.draw();
     }
 
-    private RTTFilter(Shader rtt, Shader pt, FrameBuffer fb,
-                     Matrix3x3Data vertMatData,
-                     VertexMatrixUpdater ptVmi) {
-        super(pt, vertMatData, ptVmi, "RTT");
+    protected FrameBuffer getFrameBuffer() {
+        return frameBuffer;
+    }
+
+    protected RTTFilter(Shader rtt, Shader pt, FrameBuffer fb,
+                      Matrix3x3Data vertMatData,
+                      VertexMatrixUpdater ptVmi, String name) {
+        super(pt, vertMatData, ptVmi, name);
         rttShader = rtt;
         frameBuffer = fb;
         pt.addUniform("u_Texture", new TextureLocationData(

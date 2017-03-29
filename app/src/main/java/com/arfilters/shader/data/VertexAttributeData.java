@@ -27,7 +27,7 @@ public class VertexAttributeData extends FloatBufferData {
     private static final String TAG = "VertexAttributeData";
 
     @Override
-    public void updateLocation(int location) {
+    public synchronized void updateLocation(int location) {
         GLES20.glVertexAttribPointer(
                 location, dimensions, GLES20.GL_FLOAT, false, 0, buffer);
     }

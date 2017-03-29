@@ -24,13 +24,13 @@ public class Vector2Data implements ShaderData<float[]> {
     private static final String TAG = "Vector2Data";
 
     @Override
-    public void updateData(float[] vals) {
+    public synchronized void updateData(float[] vals) {
         x = vals[0];
         y = vals[1];
     }
 
     @Override
-    public void updateLocation(int location) {
+    public synchronized void updateLocation(int location) {
         GLES20.glUniform2f(location, x, y);
     }
 

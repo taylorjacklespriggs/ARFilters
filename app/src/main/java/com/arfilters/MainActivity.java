@@ -135,6 +135,9 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
     @Override
     public void onRendererShutdown() {
 
+        for(Filter f: filters)
+            f.cleanup();
+
         cameraSurfaceTexture.release();
         GLES20.glDeleteTextures(1, new int[]{cameraTextureLocation}, 0);
 

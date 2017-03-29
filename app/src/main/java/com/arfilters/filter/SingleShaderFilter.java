@@ -38,6 +38,9 @@ class SingleShaderFilter implements Filter {
         shader.draw();
     }
 
+    @Override
+    public void cleanup() {}
+
     SingleShaderFilter(Shader sh,
                        Matrix3x3Data vertMatData,
                        VertexMatrixUpdater vmi,

@@ -22,7 +22,6 @@
 
 uniform vec2 u_Delta;
 uniform float u_Lower;
-uniform float u_AlphaScale;
 
 void calcCol(inout vec4 color, in vec2 texCoord) {
     vec4 frag;
@@ -37,10 +36,8 @@ void computeColor(out vec4 color, in vec2 texCoord) {
     calcCol(color, texCoord-u_Delta);
     calcCol(color, texCoord+2.*u_Delta);
     calcCol(color, texCoord-2.*u_Delta);
-    color.rgb /= 5.;
+    color /= 5.;
     if(color.a < u_Lower) {
         color.a = 0.;
-    } else {
-        color.a *= u_AlphaScale;
     }
 }

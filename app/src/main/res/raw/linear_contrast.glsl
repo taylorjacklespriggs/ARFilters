@@ -16,26 +16,14 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /*
- *  Computes the edges of the greyscale.
+ *  Does not modify input color.
  */
 
-uniform float u_Threshold;
-uniform float u_Strictness;
-
-void sigmoid(inout float var) {
-    var = u_Strictness*(var-u_Threshold);
-    var = 1./(1.+exp(-var));
-}
+uniform float u_Affine, u_Scale;
 
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
-    float grey = dot(color.rgb, vec3(1.))/3.;
-    grey = length(vec2(
-        dFdx(grey),
-        dFdy(grey)
-    ));
-    sigmoid(grey);
-    color.rgb = vec3(grey);
+    color.rgb += vec3(u_Affine);
+    color.rgb *= u_Scale;
 }

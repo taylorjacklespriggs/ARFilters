@@ -43,6 +43,8 @@ public class FilterGenerator {
 
     private static final int CAMERA_WIDTH = 1920, CAMERA_HEIGHT = 1080;
     private static final int BUFFER_WIDTH = CAMERA_WIDTH, BUFFER_HEIGHT = CAMERA_HEIGHT;
+    private static final float THRESHOLD = .1f;
+    private static final float STRICTNESS = 20f;
 
     public int getCameraTextureLocation() {
         return cameraTextureLocation;
@@ -122,14 +124,15 @@ public class FilterGenerator {
     /*
      * Toon filter
      */
-    private Filter generateToonFilter(int iters, float thresh, int lower) {
+    private Filter generateToonFilter(int iters, float lower) {
         return ToonFilter.create(
                 fromCameraShaderGenerator.copy(),
                 fromTextureShaderGenerator.copy(),
                 buffers[0][0],
                 buffers[0][1],
                 iters,
-                thresh,
+                strictData,
+                threshData,
                 lower,
                 vertexMatrixData,
                 eyeUpdate);
@@ -160,10 +163,36 @@ public class FilterGenerator {
                 eyeUpdate);
     }
 
+    private Filter generateContrastFilter(int numFrames) {
+        return LinearContrastFilter.create(
+                fromCameraShaderGenerator,
+                fromTextureShaderGenerator,
+                buffers[0][0],
+                vertexMatrixData,
+                eyeUpdate,
+                numFrames);
+    }
+
+    private Filter generateAdvancedContrastFilter(int numFrames,
+                                                  float windowScale) {
+        return AdvancedContrastFilter.create(
+                fromCameraShaderGenerator,
+                fromTextureShaderGenerator,
+                buffers[0][0],
+                vertexMatrixData,
+                eyeUpdate,
+                numFrames,
+                windowScale);
+    }
+
     public Collection<Filter> generateFilters() {
         ArrayList<Filter> filters = new ArrayList<>();
         filters.add(generateRTTFilter());
-        filters.add(generateToonFilter(1, .175f, 4));
+        filters.add(generateAdvancedContrastFilter(0, .5f));
+        filters.add(generateAdvancedContrastFilter(0, .3f));
+        filters.add(generateAdvancedContrastFilter(0, .1f));
+        filters.add(generateContrastFilter(180));
+        filters.add(generateToonFilter(1, .2f));
         filters.add(generateMonochromeFadingFilter(10f/60f, 4f));
         filters.add(generateMonochromeFadingFilter(10f/60f, 8f));
         filters.add(generateMonochromeFadingFilter(10f/60f, 16f));
@@ -256,8 +285,8 @@ public class FilterGenerator {
 
         edgeShaderInitializer = genShaderInit();
 
-        FloatData threshData = new FloatData(.3f);
-        FloatData strictData = new FloatData(20f);
+        threshData = new FloatData(THRESHOLD);
+        strictData = new FloatData(STRICTNESS);
         edgeShaderInitializer.addUniform("u_Threshold", threshData);
         edgeShaderInitializer.addUniform("u_Strictness", strictData);
 
@@ -329,6 +358,8 @@ public class FilterGenerator {
     private final VertexAttributeData faceTexCoordData =
             new VertexAttributeData(VertexData.FACE_TEX_COORD_DIMENSION,
                     VertexData.FACE_NUMBER_VERTICES);
+
+    private final FloatData strictData, threshData;
 
     private TextureLocationData cameraLocationData;
     private int cameraTextureLocation;

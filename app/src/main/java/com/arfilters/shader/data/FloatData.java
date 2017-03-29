@@ -27,12 +27,12 @@ public class FloatData implements ShaderData<Float> {
     private static final String TAG = "FloatData";
 
     @Override
-    public void updateData(Float val) {
+    public synchronized void updateData(Float val) {
         value = val;
     }
 
     @Override
-    public void updateLocation(int location) {
+    public synchronized void updateLocation(int location) {
         GLES20.glUniform1f(location, value);
     }
 

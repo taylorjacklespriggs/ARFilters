@@ -17,26 +17,18 @@
 
 package com.arfilters.shader.data;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
+import android.opengl.GLES20;
 
-abstract class FloatBufferData implements ShaderData<float[]> {
+public class Matrix4x4Data extends FloatBufferData {
 
     @Override
-    public synchronized void updateData(float[] vals) {
-        buffer.put(vals);
-        buffer.position(0);
+    public synchronized void updateLocation(int location) {
+        GLES20.glUniformMatrix4fv(location, 1, false, buffer);
     }
 
-    FloatBufferData(int count) {
-        length = count;
-        ByteBuffer bb = ByteBuffer.allocateDirect(length*4);
-        bb.order(ByteOrder.nativeOrder());
-        buffer = bb.asFloatBuffer();
+    public Matrix4x4Data() {
+        super(16);
     }
-
-    final FloatBuffer buffer;
-    final int length;
 
 }
+

@@ -27,4 +27,6 @@ public interface Filter {
 
     void drawEye(ViewInfo vi);
 
+    void cleanup();
+
 }

@@ -32,12 +32,12 @@ void sigmoid(inout float var) {
 
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
-    vec3 grad = vec3(
-        length(vec2(dFdx(color.r), dFdy(color.r))),
-        length(vec2(dFdx(color.g), dFdy(color.g))),
-        length(vec2(dFdx(color.b), dFdy(color.b)))
-    );
-    float edgeLen = length(grad);
+    float edgeLen =
+        length(vec2(dFdx(color.r), dFdy(color.r))) +
+        length(vec2(dFdx(color.g), dFdy(color.g))) +
+        length(vec2(dFdx(color.b), dFdy(color.b)));
+    edgeLen /= 3.;
     sigmoid(edgeLen);
+    color.rgb *= .9;
     color.rgb += edgeLen;
 }

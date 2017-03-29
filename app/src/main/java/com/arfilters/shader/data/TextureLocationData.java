@@ -28,12 +28,12 @@ public class TextureLocationData implements ShaderData<Integer> {
     private static final String TAG = "TextureLocationData";
 
     @Override
-    public void updateData(Integer texNum) {
+    public synchronized void updateData(Integer texNum) {
         textureNumber = texNum;
     }
 
     @Override
-    public void updateLocation(int location) {
+    public synchronized void updateLocation(int location) {
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + textureNumber);
 
@@ -43,7 +43,7 @@ public class TextureLocationData implements ShaderData<Integer> {
 
     }
 
-    public void newTextureLocation(int loc) {
+    public synchronized void newTextureLocation(int loc) {
         textureLocation = loc;
     }
 
