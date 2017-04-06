@@ -17,21 +17,34 @@
  */
 
 /*
- *  Does not modify input color.
+ *  Takes red to be MSB and green to be LSB of grayscale color.
  */
 
-uniform sampler2D u_CDF;
-uniform float u_WindowScale;
+uniform sampler2D u_BufferTexture;
+uniform float u_FadeAmount;
+
+void getGray(out highp float varOut, in vec2 varIn) {
+    varOut = varIn.r*255.;
+    varOut += varIn.g*255./256.;
+}
 
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
-    color.r = texture2D(u_CDF, vec2(color.r, 0.)).r;
-    color.g = texture2D(u_CDF, vec2(color.g, 0.)).g;
-    color.b = texture2D(u_CDF, vec2(color.b, 0.)).b;
-    texCoord *= 2.;
-    texCoord -= vec2(1.);
-    if(texCoord.x < -u_WindowScale || texCoord.y < -u_WindowScale
-        || texCoord.x > u_WindowScale || texCoord.y > u_WindowScale) {
-        color.rgb *= .9;
+
+    vec4 thisPixel = texture2D(u_BufferTexture, texCoord);
+
+    highp float intensity, gray, mid, rad;
+    intensity = dot(color.rgb, vec3(1./3.));
+    if(intensity > 0.) {
+        gray = 255.*intensity;
+
+        getGray(mid, thisPixel.rg);
+        getGray(rad, thisPixel.ba);
+        rad /= u_FadeAmount;
+
+        if(rad > 1./255.)
+            color.rgb *= (gray-mid)*.5/(intensity*rad)+.5;
+        else
+            color.rgb *= .5/intensity;
     }
 }

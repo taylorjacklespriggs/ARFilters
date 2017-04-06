@@ -200,6 +200,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
     private void applyFilter(Filter f) {
         currentFilter = f;
         Log.i(TAG, "switched to "+f.getName()+" filter");
+        currentFilter.initialize();
     }
 
     private void nextFilter() {

@@ -22,19 +22,11 @@
  *  through a sigmoid.
  */
 
-uniform float u_Strictness, u_Threshold;
-
-void sigmoid(inout float var) {
-    var = u_Strictness*(var-u_Threshold);
-    var = 1./(1.+exp(-var));
-}
-
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
     color.a =
         length(vec2(dFdx(color.r), dFdy(color.r))) +
         length(vec2(dFdx(color.g), dFdy(color.g))) +
         length(vec2(dFdx(color.b), dFdy(color.b)));
-    color.a /= 3.;
-    sigmoid(color.a);
+    color.a *= 3.;
 }

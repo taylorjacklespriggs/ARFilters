@@ -20,18 +20,20 @@
  *  Does not modify input color.
  */
 
-uniform sampler2D u_CDF;
-uniform float u_WindowScale;
+uniform float u_Threshold;
+
+#define NCOLORS 8.
+void clampColor(inout float x) {
+    x = float(int(x*NCOLORS))/NCOLORS;
+}
 
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
-    color.r = texture2D(u_CDF, vec2(color.r, 0.)).r;
-    color.g = texture2D(u_CDF, vec2(color.g, 0.)).g;
-    color.b = texture2D(u_CDF, vec2(color.b, 0.)).b;
-    texCoord *= 2.;
-    texCoord -= vec2(1.);
-    if(texCoord.x < -u_WindowScale || texCoord.y < -u_WindowScale
-        || texCoord.x > u_WindowScale || texCoord.y > u_WindowScale) {
-        color.rgb *= .9;
+    if(color.a > u_Threshold) {
+        color = vec4(0.);
+    } else {
+        clampColor(color.r);
+        clampColor(color.g);
+        clampColor(color.b);
     }
 }

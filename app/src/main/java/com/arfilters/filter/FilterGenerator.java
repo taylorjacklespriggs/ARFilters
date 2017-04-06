@@ -61,8 +61,7 @@ public class FilterGenerator {
                     vertexMatrixData,
                     eyeUpdate,
                     colorMapMatrixData,
-                    colorblindMaps[type.getColorblindIndex()],
-                    type.getName());
+                    type);
         }
 
         switch(type) {
@@ -89,6 +88,20 @@ public class FilterGenerator {
 
         Shader sh = type.generateShader(fromCameraShaderGenerator.copy());
         return new SingleShaderFilter(sh, vertexMatrixData, eyeUpdate, type.getName());
+    }
+
+    /*
+     * This shader computes local contrast
+     */
+    private Filter generateLocalContrastFilter() {
+        return LocalContrastFilter.create(
+                fromCameraShaderGenerator.copy(),
+                fromTextureShaderGenerator.copy(),
+                buffers[0][0],
+                buffers[0][1],
+                alternateBuffer,
+                vertexMatrixData,
+                eyeUpdate);
     }
 
     /*
@@ -125,7 +138,7 @@ public class FilterGenerator {
      * Toon filter
      */
     private Filter generateToonFilter(int iters, float lower) {
-        return ToonFilter.create(
+        return ToonExperimentalFilter.create(
                 fromCameraShaderGenerator.copy(),
                 fromTextureShaderGenerator.copy(),
                 buffers[0][0],
@@ -141,11 +154,10 @@ public class FilterGenerator {
     /*
      * This shader fades with a 16bit monochrome texture
      */
-    private Filter generateMonochromeFadingFilter(float halfLife, float brightness) {
+    private Filter generateMonochromeFadingFilter(float halfLife) {
         return FadingFilter.create(
                 fromCameraShaderGenerator.copy(),
                 fromTextureShaderGenerator.copy(),
-                brightness,
                 halfLife,
                 buffers[0][0],
                 buffers[0][1],
@@ -173,7 +185,8 @@ public class FilterGenerator {
                 numFrames);
     }
 
-    private Filter generateAdvancedContrastFilter(int numFrames,
+    private Filter generateAdvancedContrastFilter(int subSamp,
+                                                  int numFrames,
                                                   float windowScale) {
         return AdvancedContrastFilter.create(
                 fromCameraShaderGenerator,
@@ -181,21 +194,21 @@ public class FilterGenerator {
                 buffers[0][0],
                 vertexMatrixData,
                 eyeUpdate,
+                subSamp,
                 numFrames,
                 windowScale);
     }
 
     public Collection<Filter> generateFilters() {
         ArrayList<Filter> filters = new ArrayList<>();
+        filters.add(generateLocalContrastFilter());
+        filters.add(generateToonFilter(1, 4f/25));
         filters.add(generateRTTFilter());
-        filters.add(generateAdvancedContrastFilter(0, .5f));
-        filters.add(generateAdvancedContrastFilter(0, .3f));
-        filters.add(generateAdvancedContrastFilter(0, .1f));
-        filters.add(generateContrastFilter(180));
-        filters.add(generateToonFilter(1, .2f));
-        filters.add(generateMonochromeFadingFilter(10f/60f, 4f));
-        filters.add(generateMonochromeFadingFilter(10f/60f, 8f));
-        filters.add(generateMonochromeFadingFilter(10f/60f, 16f));
+        filters.add(generateAdvancedContrastFilter(4, 10, .5f));
+        filters.add(generateAdvancedContrastFilter(2, 10, .3f));
+        filters.add(generateAdvancedContrastFilter(1, 10, .1f));
+        filters.add(generateContrastFilter(60));
+        filters.add(generateMonochromeFadingFilter(20f/60f));
         filters.add(generateDarknessFilter(1, 1f));
         filters.add(generateDarknessFilter(1, 2f));
         filters.add(generateDarknessFilter(1, 4f));
@@ -296,6 +309,7 @@ public class FilterGenerator {
         tmp.setComputeColor(R.raw.color_map);
         colorMapShader = tmp.generateShader();
         colorMapShader.addUniform("u_ColorMapMatrix", colorMapMatrixData);
+
     }
 
     private static final float[][] colorblindMaps = new float[][] {

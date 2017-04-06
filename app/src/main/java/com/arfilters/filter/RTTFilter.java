@@ -24,6 +24,7 @@ import com.arfilters.shader.Shader;
 import com.arfilters.shader.ShaderGenerator;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.arfilters.shader.data.TextureLocationData;
+import com.taylorjs.hproject.arfilters.R;
 
 class RTTFilter extends BufferedFilter {
 
@@ -34,9 +35,11 @@ class RTTFilter extends BufferedFilter {
                             VertexMatrixUpdater ptVmi) {
 
         // generate camera to texture shader
+        camGen.setComputeColor(R.raw.passthrough);
         Shader rtt = camGen.generateShader();
 
         // generate passthrough shader
+        texGen.setComputeColor(R.raw.passthrough);
         Shader pt = texGen.generateShader();
 
         return new RTTFilter(rtt, pt, fb, vertMatData, ptVmi, "RTT");

@@ -35,13 +35,13 @@ enum FilterType {
 
     HUE_ROTATION,
     PROTANOPIA,
-    PROTANOMALY,
+    //PROTANOMALY,
     DEUTERANOPIA,
-    DEUTERANOMALY,
+    //DEUTERANOMALY,
     TRITANOPIA,
-    TRITANOMALY,
-    ACHROMATOPSIA,
-    ACHROMATOMALY,
+    //TRITANOMALY,
+    //ACHROMATOPSIA,
+    //ACHROMATOMALY,
 
 
     COLORBLIND_RG,
@@ -139,7 +139,7 @@ enum FilterType {
 
     public boolean isColorblindType() {
         return ordinal() >= FilterType.PROTANOPIA.ordinal()
-            && ordinal() <= FilterType.ACHROMATOMALY.ordinal();
+            && ordinal() <= FilterType.TRITANOPIA.ordinal();
     }
 
 }

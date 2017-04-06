@@ -23,6 +23,8 @@ public interface Filter {
 
     String getName();
 
+    void initialize();
+
     void prepareView();
 
     void drawEye(ViewInfo vi);

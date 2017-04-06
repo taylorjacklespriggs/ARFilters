@@ -22,6 +22,7 @@ import android.opengl.GLES20;
 import com.arfilters.GLTools;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.ShaderGenerator;
+import com.arfilters.shader.data.FloatData;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.arfilters.shader.data.TextureLocationData;
 import com.arfilters.shader.data.Vector2Data;
@@ -39,17 +40,15 @@ public class AdvancedContrastFilter extends ImageSampleFilter {
                                                 FrameBuffer fb,
                                                 Matrix3x3Data vertMatData,
                                                 VertexMatrixUpdater ptVmi,
-                                                int updateFreq, float windowScale) {
+                                                int subSamp,
+                                                int updateFreq,
+                                                float windowScale) {
         camGen.setComputeColor(R.raw.passthrough);
         Shader ctt = camGen.generateShader();
         texGen.setComputeColor(R.raw.advanced_contrast);
         Shader contrast = texGen.generateShader();
-        int w = (int)(fb.getWidth() * windowScale);
-        int h = (int)(fb.getHeight() * windowScale);
-        int x = (fb.getWidth() - w) / 2;
-        int y = (fb.getHeight() - h) / 2;
         return new AdvancedContrastFilter(ctt, contrast, fb, vertMatData,
-                ptVmi, x, y, w, h, updateFreq, "Advanced Contrast");
+                ptVmi, windowScale, subSamp, updateFreq, "Advanced Contrast");
     }
 
     private class ContrastInfo implements ImageSampler {
@@ -90,9 +89,10 @@ public class AdvancedContrastFilter extends ImageSampleFilter {
     private AdvancedContrastFilter(Shader rtt, Shader pt, FrameBuffer fb,
                                    Matrix3x3Data vertMatData,
                                    VertexMatrixUpdater ptVmi,
-                                   int x, int y, int w, int h,
-                                   int updateFreq, String name) {
-        super(rtt, pt, fb, vertMatData, ptVmi, x, y, w, h, updateFreq, name);
+                                   float windowScale,
+                                   int subSamp, int updateFreq, String name) {
+        super(rtt, pt, fb, vertMatData, ptVmi, windowScale, subSamp,
+                updateFreq, name);
         info = new ContrastInfo();
         histogram = new int[256][3];
         cdf = ByteBuffer.allocateDirect(4*256);
@@ -110,9 +110,7 @@ public class AdvancedContrastFilter extends ImageSampleFilter {
                 GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, cdf);
         pt.addUniform("u_CDF", new TextureLocationData(GLES20.GL_TEXTURE_2D, 1,
                 textureLocation));
-        float width = fb.getWidth(), height = fb.getHeight();
-        pt.addUniform("u_BLCorner", new Vector2Data(x/width,y/height));
-        pt.addUniform("u_TRCorner", new Vector2Data((x+w)/width,(y+h)/height));
+        pt.addUniform("u_WindowScale", new FloatData(windowScale));
     }
     private final ContrastInfo info;
     private final int histogram[][];

@@ -24,13 +24,7 @@
 
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
-    if(2.*color.b < min(color.r, color.g)) {
-        if(color.r > color.g) {
-            color.r += color.g;
-            color.g = 0.;
-        } else {
-            color.g += color.r;
-            color.r = 0.;
-        }
-    }
+    float len = length(color.rg);
+    if(len > 0.)
+        color.rg *= max(color.r, color.g)/len;
 }

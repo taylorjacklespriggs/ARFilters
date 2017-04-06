@@ -18,28 +18,28 @@
 package com.arfilters.filter;
 
 import android.opengl.GLES20;
+import android.util.Log;
 
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.ShaderGenerator;
 import com.arfilters.shader.data.FloatData;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.arfilters.shader.data.TextureLocationData;
+import com.arfilters.shader.data.Vector2Data;
 import com.taylorjs.hproject.arfilters.R;
 
 import static com.arfilters.GLTools.FrameBuffer;
 
-class FadingFilter extends BufferedFilter {
+class FadingFilter extends ImageSampleFilter {
 
     static FadingFilter create(ShaderGenerator camGen,
                                ShaderGenerator texGen,
-                               float brightness,
                                float halfLife,
                                FrameBuffer front,
                                FrameBuffer back,
                                FrameBuffer camera,
                                Matrix3x3Data vertMatData,
                                VertexMatrixUpdater ptVmi) {
-        brightness /= (float)Math.sqrt(3);
         final float fps = 60f;
         float r = fps*halfLife; // num frames
         r = (float)Math.pow(.5, 1./r); // fading factor
@@ -55,8 +55,33 @@ class FadingFilter extends BufferedFilter {
         texGen.setComputeColor(R.raw.monochrome_passthrough);
         Shader pt = texGen.generateShader();
 
-        return new FadingFilter(ctt, mix, pt, r, brightness, front, back,
+        return new FadingFilter(ctt, mix, pt, r, .5f, 8, 12, front, back,
                 camera, vertMatData, ptVmi);
+    }
+
+    private class ContrastSampler implements ImageSampler {
+        Integer min, max;
+        @Override
+        public void feed(int x, int y, int r, int g, int b, int a) {
+            r *= 256;
+            r += g;
+            if(min == null || r < min)
+                min = r;
+            if(max == null || r > max)
+                max = r;
+        }
+        @Override
+        public void finish() {
+            synchronized(this) {
+                float mn = min/256f, mx = max/256f;
+                rangeData.updateData(new float[]{-mn, 1f/(mx-mn)});
+            }
+        }
+    }
+
+    @Override
+    protected ImageSampler createImageSampler() {
+        return new ContrastSampler();
     }
 
     @Override
@@ -72,6 +97,8 @@ class FadingFilter extends BufferedFilter {
         frontBuffer.enable();
         mixingShader.draw();
 
+        sampleFrameBuffer();
+
         // update frontTextureID for passThrough
         frontTextureData.newTextureLocation(frontBuffer.getTextureID());
 
@@ -83,10 +110,10 @@ class FadingFilter extends BufferedFilter {
     }
 
     private FadingFilter(Shader ctt, Shader mix, Shader pt, float r,
-                         float brightness, FrameBuffer front, FrameBuffer back,
+                         float windowScale, int subSamp, int updateFreq, FrameBuffer front, FrameBuffer back,
                          FrameBuffer camera, Matrix3x3Data vertMatData,
                          VertexMatrixUpdater ptVmi) {
-        super(pt, vertMatData, ptVmi, "Fading");
+        super(mix, pt, camera, vertMatData, ptVmi, windowScale, subSamp, updateFreq, "Fading");
         cameraToTextureShader = ctt;
         mixingShader = mix;
         frontBuffer = front;
@@ -104,9 +131,8 @@ class FadingFilter extends BufferedFilter {
         mixingShader.addUniform("u_Texture", camLoc);
         mixingShader.addUniform("u_AlternateTexture", backTextureData);
 
-        FloatData ceiling = new FloatData(1f/((1f-r)*brightness));
         pt.addUniform("u_Texture", frontTextureData);
-        pt.addUniform("u_Ceiling", ceiling);
+        pt.addUniform("u_Range", rangeData = new Vector2Data(0f, 1f/((1f-r))));
     }
 
     private final Shader cameraToTextureShader, mixingShader;
@@ -115,5 +141,6 @@ class FadingFilter extends BufferedFilter {
     private final TextureLocationData
             frontTextureData,
             backTextureData;
+    private final Vector2Data rangeData;
 
 }

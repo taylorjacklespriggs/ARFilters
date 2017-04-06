@@ -38,10 +38,8 @@ public class LinearContrastFilter extends ImageSampleFilter {
         Shader ctt = camGen.generateShader();
         texGen.setComputeColor(R.raw.linear_contrast);
         Shader contrast = texGen.generateShader();
-        int x = fb.getWidth() / 4;
-        int y = fb.getHeight() / 4;
         return new LinearContrastFilter(ctt, contrast, fb, vertMatData, ptVmi,
-                x, y, x*2, y*2, updateFreq, "Linear Contrast");
+                .5f, updateFreq, "Linear Contrast");
     }
 
     private class ContrastInfo implements ImageSampler {
@@ -70,9 +68,9 @@ public class LinearContrastFilter extends ImageSampleFilter {
     private LinearContrastFilter(Shader rtt, Shader pt, FrameBuffer fb,
                                  Matrix3x3Data vertMatData,
                                  VertexMatrixUpdater ptVmi,
-                                 int x, int y, int w, int h,
+                                 float windowScale,
                                  int updateFreq, String name) {
-        super(rtt, pt, fb, vertMatData, ptVmi, x, y, w, h, updateFreq, name);
+        super(rtt, pt, fb, vertMatData, ptVmi, windowScale, 4, updateFreq, name);
         info = new ContrastInfo();
         affineData = new FloatData(0f);
         scaleData = new FloatData(1f);

@@ -17,21 +17,22 @@
  */
 
 /*
- *  Does not modify input color.
+ *  Computes a quick 3 width box blur in one dimension
  */
 
-uniform sampler2D u_CDF;
-uniform float u_WindowScale;
+uniform vec2 u_Delta;
 
 void computeColor(out vec4 color, in vec2 texCoord) {
-    getTextureFragment(color, texCoord);
-    color.r = texture2D(u_CDF, vec2(color.r, 0.)).r;
-    color.g = texture2D(u_CDF, vec2(color.g, 0.)).g;
-    color.b = texture2D(u_CDF, vec2(color.b, 0.)).b;
-    texCoord *= 2.;
-    texCoord -= vec2(1.);
-    if(texCoord.x < -u_WindowScale || texCoord.y < -u_WindowScale
-        || texCoord.x > u_WindowScale || texCoord.y > u_WindowScale) {
-        color.rgb *= .9;
-    }
+    vec4 frag;
+    getTextureFragment(frag, texCoord);
+    color = frag;
+    getTextureFragment(frag, texCoord+u_Delta);
+    color += frag;
+    getTextureFragment(frag, texCoord-u_Delta);
+    color += frag;
+    getTextureFragment(frag, texCoord+2.*u_Delta);
+    color += frag;
+    getTextureFragment(frag, texCoord-2.*u_Delta);
+    color += frag;
+    color /= 5.;
 }

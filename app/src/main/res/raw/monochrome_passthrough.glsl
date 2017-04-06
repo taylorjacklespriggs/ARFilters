@@ -20,11 +20,12 @@
  *  Takes red to be MSB and green to be LSB of grayscale color.
  */
 
-uniform float u_Ceiling;
+uniform vec2 u_Range;
 
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
     highp float gray = color.r*255.;
     gray += color.g*255./256.;
-    color.rgb = vec3(gray/u_Ceiling);
+    color.rgb = vec3((gray+u_Range.x)*u_Range.y);
+    //color.rgb = vec3(0., u_Range);
 }

@@ -52,10 +52,7 @@ public abstract class ImageSampleFilter extends RTTFilter {
         return pixel;
     }
 
-    @Override
-    protected void renderToBuffers() {
-        super.renderToBuffers();
-        FrameBuffer fb = getFrameBuffer();
+    protected void sampleFrameBuffer() {
         synchronized(this) {
             if(requiresUpdate) {
                 if (imageSampler != null) {
@@ -76,22 +73,28 @@ public abstract class ImageSampleFilter extends RTTFilter {
         }
     }
 
+    @Override
+    protected void renderToBuffers() {
+        super.renderToBuffers();
+        sampleFrameBuffer();
+    }
+
     public ImageSampleFilter(Shader rtt, Shader pt, FrameBuffer fb,
                              Matrix3x3Data vertMatData,
                              VertexMatrixUpdater ptVmi,
-                             int x, int y, int w, int h,
-                             int updateFreq, String name) {
+                             float windowScale,
+                             int subSamp, int updateFreq, String name) {
         super(rtt, pt, fb, vertMatData, ptVmi, name);
-        windowX = x;
-        windowY = y;
-        windowW = w;
-        windowH = h;
+        windowW = (int)(fb.getWidth()*windowScale);
+        windowH = (int)(fb.getHeight()*windowScale);
+        windowX = (fb.getWidth()-windowW)/2;
+        windowY = (fb.getHeight()-windowH)/2;
+        subSampling = subSamp;
         updateFrequency = updateFreq;
         imageLock = new ReentrantLock(true);
         imageAvailable = imageLock.newCondition();
         requiresUpdate = true;
         imageData = ByteBuffer.allocateDirect(windowW*windowH*4);
-        forceStop = false;
         processingThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -100,8 +103,8 @@ public abstract class ImageSampleFilter extends RTTFilter {
                     while (true) {
                         imageAvailable.await();
                         imageSampler = createImageSampler();
-                        for(int i = 0; i < windowW; ++i)
-                            for(int j = 0; j < windowH; ++j)
+                        for(int i = 0; i < windowW; i += subSampling)
+                            for(int j = 0; j < windowH; j += subSampling)
                                 imageSampler.feed(i, j, getPixel(i, j, 0),
                                         getPixel(i, j, 1), getPixel(i, j, 2),
                                         getPixel(i, j, 3));
@@ -125,8 +128,7 @@ public abstract class ImageSampleFilter extends RTTFilter {
     private final ByteBuffer imageData;
     private final Thread processingThread;
     private final int windowX, windowY, windowW, windowH;
-    private final int updateFrequency;
+    private final int updateFrequency, subSampling;
     private int nFrames;
     private ImageSampler imageSampler;
-    private boolean forceStop;
 }

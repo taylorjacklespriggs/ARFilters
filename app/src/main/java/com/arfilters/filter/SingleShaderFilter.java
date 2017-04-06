@@ -29,6 +29,10 @@ class SingleShaderFilter implements Filter {
     }
 
     @Override
+    public void initialize() {
+    }
+
+    @Override
     public void prepareView() {
     }
 

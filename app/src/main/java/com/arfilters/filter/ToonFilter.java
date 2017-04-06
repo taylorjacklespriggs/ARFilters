@@ -107,7 +107,6 @@ class ToonFilter extends BufferedFilter {
         bufferTextureData = new TextureLocationData(GLES20.GL_TEXTURE_2D, 0,
                 firstBuffer.getTextureID());
 
-        edgeShader.addUniform("u_Texture", bufferTextureData);
         edgeShader.addUniform("u_Strictness", strictness);
         edgeShader.addUniform("u_Threshold", threshold);
 
