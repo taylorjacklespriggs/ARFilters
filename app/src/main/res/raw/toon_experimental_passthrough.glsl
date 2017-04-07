@@ -22,18 +22,13 @@
 
 uniform float u_Threshold;
 
-#define NCOLORS 8.
-void clampColor(inout float x) {
-    x = float(int(x*NCOLORS))/NCOLORS;
-}
+#define NCOLORS 5.
 
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
-    if(color.a > u_Threshold) {
-        color = vec4(0.);
-    } else {
-        clampColor(color.r);
-        clampColor(color.g);
-        clampColor(color.b);
+    float intens = dot(color.rgb, vec3(NCOLORS/3.));
+    if(intens > 0.) {
+        color.rgb *= float(int(intens))/intens+.5/NCOLORS;
     }
+    color.rgb -= vec3(color.a/u_Threshold);
 }

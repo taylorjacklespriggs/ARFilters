@@ -28,5 +28,4 @@ void computeColor(out vec4 color, in vec2 texCoord) {
         length(vec2(dFdx(color.r), dFdy(color.r))) +
         length(vec2(dFdx(color.g), dFdy(color.g))) +
         length(vec2(dFdx(color.b), dFdy(color.b)));
-    color.a *= 3.;
 }
