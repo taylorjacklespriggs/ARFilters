@@ -35,13 +35,8 @@ enum FilterType {
 
     HUE_ROTATION,
     PROTANOPIA,
-    //PROTANOMALY,
     DEUTERANOPIA,
-    //DEUTERANOMALY,
     TRITANOPIA,
-    //TRITANOMALY,
-    //ACHROMATOPSIA,
-    //ACHROMATOMALY,
 
 
     COLORBLIND_RG,
@@ -50,8 +45,7 @@ enum FilterType {
 
     GRAY_EDGES,
     GRADIENT_EDGES,
-    CHROMATIC_EDGES,
-    ENHANCED_EDGES;
+    CHROMATIC_EDGES;
 
     public String getName() {
         StringBuilder sb = new StringBuilder();
@@ -95,7 +89,6 @@ enum FilterType {
             case GRAY_EDGES:
             case GRADIENT_EDGES:
             case CHROMATIC_EDGES:
-            case ENHANCED_EDGES:
                 return FilterClass.EDGES;
         }
 
@@ -126,15 +119,9 @@ enum FilterType {
                 return R.raw.gradient_edges;
             case CHROMATIC_EDGES:
                 return R.raw.chromatic_edges;
-            case ENHANCED_EDGES:
-                return R.raw.enhanced_edges;
         }
 
         throw new RuntimeException("FS resource undefined for filter "+this);
-    }
-
-    public int getColorblindIndex() {
-        return this.ordinal() - FilterType.PROTANOPIA.ordinal();
     }
 
     public boolean isColorblindType() {

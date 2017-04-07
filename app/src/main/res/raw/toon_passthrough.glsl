@@ -20,19 +20,14 @@
  *  Does not modify input color.
  */
 
-#define NCOLORS 16.
-void clampColor(inout float x) {
-    x -= mod(x, 1./NCOLORS);
-}
+uniform float u_Threshold;
+
+#define NCOLORS 5.
 
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
-    if(color.a > .0) {
-        color = vec4(vec3(0.), 1.);
-    } else {
-        clampColor(color.r);
-        clampColor(color.g);
-        clampColor(color.b);
-        color.a = 1.;
-    }
+    float intens = dot(color.rgb, vec3(NCOLORS/3.));
+    if(intens > 0.)
+        color.rgb *= float(int(intens+.5))/intens+.5/NCOLORS;
+    color.rgb -= vec3(color.a/u_Threshold);
 }

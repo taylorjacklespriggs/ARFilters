@@ -69,6 +69,8 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
     private Iterator<Filter> filterIterator;
     private Filter currentFilter;
 
+    private RuntimeStatistics statistics;
+
     private void setupCamera() {
         // Open camera
         Pair<Camera.CameraInfo, Integer> backCamera = getBackCamera();
@@ -91,6 +93,8 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        statistics = new RuntimeStatistics(1000);
 
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
@@ -223,17 +227,10 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
         }
     }
 
-    int frameCount = 0;
-    long time = System.nanoTime();
     @Override
     public void onNewFrame(HeadTransform headTransform) {
         if(cameraSurfaceTexture != null) {
-            long tmp = System.nanoTime();
-            if(tmp - time > 1000000000L) {
-                Log.i(TAG, frameCount+"fps");
-                time = tmp;
-                frameCount = 0;
-            }
+            statistics.onNewFrame();
 
             // Update the camera preview texture
             cameraSurfaceTexture.updateTexImage();
@@ -241,7 +238,6 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
             currentFilter.prepareView();
 
             GLTools.checkGLError(TAG, "onReadyToDraw");
-            ++frameCount;
         }
     }
 
@@ -258,10 +254,13 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
     }
 
     @Override
-    public void onFinishFrame(Viewport viewport) {}
+    public void onFinishFrame(Viewport viewport) {
+        statistics.onFinishedFrame();
+    }
 
     @Override
     public void onCardboardTrigger() {
+        statistics.logAndReset();
         nextFilter();
         vibrator.vibrate(50);
     }

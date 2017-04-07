@@ -19,7 +19,6 @@ package com.arfilters.filter;
 
 import android.opengl.GLES20;
 
-import com.arfilters.GLTools;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.ShaderGenerator;
 import com.arfilters.shader.data.FloatData;
@@ -36,101 +35,118 @@ class ToonFilter extends BufferedFilter {
                              ShaderGenerator texGen,
                              FrameBuffer front,
                              FrameBuffer back,
-                             int iters,
-                             FloatData strictness,
                              FloatData threshold,
-                             float lower,
                              Matrix3x3Data vertMatData,
                              VertexMatrixUpdater ptVmi) {
 
-        // generate edge shader
-        camGen.setComputeColor(R.raw.toon_edges);
-        camGen.setUseDerivatives(true);
-        Shader edge = camGen.generateShader();
-
         // generate blur shader
-        texGen.setComputeColor(R.raw.toon_blur);
-        Shader blur = texGen.generateShader();
+        camGen.setComputeColor(R.raw.blur);
+        camGen.setUseDerivatives(false);
+        Shader quickBlurHoriz = camGen.generateShader();
+
+        texGen.setComputeColor(R.raw.blur);
+        Shader quickBlurVert = texGen.generateShader();
+
+        // generate edge shader
+        texGen.setComputeColor(R.raw.toon_edges);
+        texGen.setUseDerivatives(true);
+        Shader edge = texGen.generateShader();
 
         // create the passThrough shader
         texGen.setComputeColor(R.raw.toon_passthrough);
+        texGen.setUseDerivatives(false);
+        Shader finalColor = texGen.generateShader();
+
+        texGen.setComputeColor(R.raw.passthrough);
         Shader pt = texGen.generateShader();
 
-        return new ToonFilter(edge, blur, pt, front, back,
-                iters, strictness, threshold, lower, vertMatData, ptVmi);
+        return new ToonFilter(quickBlurHoriz, quickBlurVert, edge, finalColor, pt, front, back,
+                threshold, vertMatData, ptVmi);
     }
 
     @Override
     protected void renderToBuffers() {
 
         // render camera to texture
-        firstBuffer.enable();
+        enableFrontBuffer();
+        setHorizontalDelta();
+        horizShader.draw();
 
+        swapBuffers();
+        setVerticalDelta();
+        vertShader.draw();
+
+        swapBuffers();
         edgeShader.draw();
 
-        for(int i = 0; i < iterations; ++i) {
-
-            // do horizontal blur
-            bufferTextureData.newTextureLocation(firstBuffer.getTextureID());
-            deltaData.updateData(new float[] {1f/firstBuffer.getWidth(), 0f});
-            lowerData.updateData(0f);
-
-            secondBuffer.enable();
-            blurShader.draw();
-
-            // do vertical blur
-            bufferTextureData.newTextureLocation(secondBuffer.getTextureID());
-            deltaData.updateData(new float[] {0f, 1f/secondBuffer.getHeight()});
-            lowerData.updateData(lowerNumber);
-
-            firstBuffer.enable();
-            blurShader.draw();
-
-        }
+        swapBuffers();
+        finalShader.draw();
 
         // update bufferTextureID for passThrough
-        bufferTextureData.newTextureLocation(firstBuffer.getTextureID());
+        useBufferTexture();
 
     }
 
-    private ToonFilter(Shader edge, Shader blur, Shader pt, FrameBuffer front,
-                       FrameBuffer back, int iters, FloatData strictness,
-                       FloatData threshold, float lower,
+    private void useBufferTexture() {
+        bufferTextureData.newTextureLocation(firstBuffer.getTextureID());
+    }
+
+    private void enableFrontBuffer() {
+        firstBuffer.enable();
+    }
+
+    private void swapBuffers() {
+        useBufferTexture();
+        FrameBuffer tmp = firstBuffer;
+        firstBuffer = secondBuffer;
+        secondBuffer = tmp;
+        enableFrontBuffer();
+    }
+
+    private void setHorizontalDelta() {
+        deltaData.updateData(new float[] {1f/firstBuffer.getWidth(), 0f});
+    }
+
+    private void setVerticalDelta() {
+        deltaData.updateData(new float[] {0f, 1f/secondBuffer.getHeight()});
+    }
+
+    private ToonFilter(Shader horiz, Shader vert, Shader edge, Shader col,
+                       Shader pt, FrameBuffer front,
+                       FrameBuffer back,
+                       FloatData threshold,
                        Matrix3x3Data vertMatData, VertexMatrixUpdater ptVmi) {
-        super(pt, vertMatData, ptVmi, "Toon");
+        super(pt, vertMatData, ptVmi, "Toon Experimental");
         edgeShader = edge;
-        blurShader = blur;
+        finalShader = col;
         firstBuffer = front;
         secondBuffer = back;
-        iterations = iters;
+
+        deltaData = new Vector2Data();
+
+        horizShader = horiz;
+        horizShader.addUniform("u_Delta", deltaData);
 
         bufferTextureData = new TextureLocationData(GLES20.GL_TEXTURE_2D, 0,
                 firstBuffer.getTextureID());
 
-        edgeShader.addUniform("u_Strictness", strictness);
-        edgeShader.addUniform("u_Threshold", threshold);
+        vertShader = vert;
+        vertShader.addUniform("u_Texture", bufferTextureData);
+        vertShader.addUniform("u_Delta", deltaData);
+
+        edgeShader.addUniform("u_Texture", bufferTextureData);
+
+        finalShader.addUniform("u_Texture", bufferTextureData);
+        finalShader.addUniform("u_Threshold", threshold);
 
         pt.addUniform("u_Texture", bufferTextureData);
-
-        deltaData = new Vector2Data();
-
-        blurShader.addUniform("u_Texture", bufferTextureData);
-        blurShader.addUniform("u_Delta", deltaData);
-
-        lowerNumber = lower;
-        blurShader.addUniform("u_Lower", lowerData = new FloatData(0f));
     }
 
-    private final Shader edgeShader, blurShader;
+    private final Shader horizShader, vertShader, edgeShader, finalShader;
     private FrameBuffer firstBuffer, secondBuffer;
     private final TextureLocationData
             bufferTextureData;
 
-    private final FloatData lowerData;
-    private final float lowerNumber;
-
     private Vector2Data deltaData;
-
-    private int iterations;
 
 }
