@@ -17,8 +17,7 @@
  */
 
 /*
- *  This vertex shader transforms the texture coordinates via a texture coordinate transformation
- *  matrix.
+ *  This vertex shader computes the position with a vertex transformation matrix
  */
 
 attribute vec3 a_Position;
@@ -30,5 +29,6 @@ varying vec2 v_TexCoord;
 
 void main() {
    v_TexCoord = a_TexCoord;
-   gl_Position = vec4((a_Position*u_VertexTransform).xy, 0., 1.);
+   vec3 pos = a_Position*u_VertexTransform;
+   gl_Position = vec4(pos.xy, 0., pos.z);
 }

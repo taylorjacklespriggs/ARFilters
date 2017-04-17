@@ -20,8 +20,6 @@ package com.arfilters;
 import android.opengl.GLES20;
 import android.util.Log;
 
-import javax.microedition.khronos.opengles.GL10;
-
 import static android.opengl.GLU.gluErrorString;
 
 public class GLTools {
@@ -32,12 +30,13 @@ public class GLTools {
 
         public void enable() {
             GLTools.setFramebuffer(frameBufferID);
+            GLES20.glViewport(0, 0, width, height);
         }
 
         private final int frameBufferID, textureID;
         private final int width, height;
-        public FrameBuffer(int w, int h, int internalFormat, int format, int storeType,
-                           int interpolation, int wrapType) {
+        public FrameBuffer(int w, int h, int internalFormat, int format,
+                           int storeType, int interpolation, int wrapType) {
 
             width = w;
             height = h;
@@ -54,12 +53,13 @@ public class GLTools {
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, frameBufferID);
 
 
-            textureID = genTexture(GLES20.GL_TEXTURE_2D, interpolation, wrapType);
+            textureID = genTexture(GLES20.GL_TEXTURE_2D, interpolation,
+                    wrapType);
 
             GLTools.checkGLError(TAG, "set texture parameters");
 
-            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, internalFormat, getWidth(),
-                    getHeight(), 0, format, storeType, null);
+            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, internalFormat,
+                    getWidth(), getHeight(), 0, format, storeType, null);
 
             GLTools.checkGLError(TAG, "generate framebuffer texture");
 
@@ -108,16 +108,21 @@ public class GLTools {
         }
     }
 
-    private static void setTextureParameters(int textureType, int interpolation, int wrapType) {
+    private static void setTextureParameters(int textureType,
+                                             int interpolation,
+                                             int wrapType) {
 
-        GLES20.glTexParameterf(textureType, GL10.GL_TEXTURE_MIN_FILTER, interpolation);
-        GLES20.glTexParameterf(textureType, GL10.GL_TEXTURE_MAG_FILTER, interpolation);
-        GLES20.glTexParameteri(textureType, GL10.GL_TEXTURE_WRAP_S, wrapType);
-        GLES20.glTexParameteri(textureType, GL10.GL_TEXTURE_WRAP_T, wrapType);
+        GLES20.glTexParameterf(textureType, GLES20.GL_TEXTURE_MIN_FILTER,
+                interpolation);
+        GLES20.glTexParameterf(textureType, GLES20.GL_TEXTURE_MAG_FILTER,
+                interpolation);
+        GLES20.glTexParameteri(textureType, GLES20.GL_TEXTURE_WRAP_S, wrapType);
+        GLES20.glTexParameteri(textureType, GLES20.GL_TEXTURE_WRAP_T, wrapType);
 
     }
 
-    public static int genTexture(int textureType, int interpolation, int wrapType) {
+    public static int genTexture(int textureType, int interpolation,
+                                 int wrapType) {
         int[] genBuf = new int[1];
         GLES20.glGenTextures(1, genBuf, 0);
         GLES20.glBindTexture(textureType, genBuf[0]);
@@ -134,7 +139,8 @@ public class GLTools {
 
         // Get the compilation status.
         final int[] compileStatus = new int[1];
-        GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compileStatus, 0);
+        GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compileStatus,
+                0);
 
         // If the compilation failed, delete the shader.
         if (compileStatus[0] == 0) {

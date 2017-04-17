@@ -20,8 +20,8 @@
  *  Uniform specification and sampling for default glsl textures.
  */
 
- uniform sampler2D u_Texture;
+uniform sampler2D u_Texture;
 
- void getTextureFragment(out vec4 color, in vec2 texCoord) {
+void getTextureFragment(out vec4 color, in vec2 texCoord) {
     color = texture2D(u_Texture, texCoord);
- }
+}

@@ -38,17 +38,19 @@ public class AdvancedContrastFilter extends ImageSampleFilter {
     public static AdvancedContrastFilter create(ShaderGenerator camGen,
                                                 ShaderGenerator texGen,
                                                 FrameBuffer fb,
+                                                FrameBuffer sampBuffer,
                                                 Matrix3x3Data vertMatData,
                                                 VertexMatrixUpdater ptVmi,
-                                                int subSamp,
                                                 int updateFreq,
                                                 float windowScale) {
         camGen.setComputeColor(R.raw.passthrough);
         Shader ctt = camGen.generateShader();
+        texGen.setComputeColor(R.raw.passthrough);
+        Shader samp = texGen.generateShader();
         texGen.setComputeColor(R.raw.advanced_contrast);
         Shader contrast = texGen.generateShader();
-        return new AdvancedContrastFilter(ctt, contrast, fb, vertMatData,
-                ptVmi, windowScale, subSamp, updateFreq, "Advanced Contrast");
+        return new AdvancedContrastFilter(ctt, contrast, samp, fb, sampBuffer, vertMatData,
+                ptVmi, windowScale, updateFreq, "Advanced Contrast");
     }
 
     private class ContrastInfo implements ImageSampler {
@@ -86,12 +88,13 @@ public class AdvancedContrastFilter extends ImageSampleFilter {
         return new ContrastInfo();
     }
 
-    private AdvancedContrastFilter(Shader rtt, Shader pt, FrameBuffer fb,
+    private AdvancedContrastFilter(Shader rtt, Shader pt, Shader sampShader,
+                                   FrameBuffer fb, FrameBuffer sampBuffer,
                                    Matrix3x3Data vertMatData,
                                    VertexMatrixUpdater ptVmi,
                                    float windowScale,
-                                   int subSamp, int updateFreq, String name) {
-        super(rtt, pt, fb, vertMatData, ptVmi, windowScale, subSamp,
+                                   int updateFreq, String name) {
+        super(rtt, pt, sampShader, fb, sampBuffer, vertMatData, ptVmi, windowScale,
                 updateFreq, name);
         info = new ContrastInfo();
         histogram = new int[256][3];

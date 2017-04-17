@@ -17,15 +17,28 @@
 
 package com.arfilters.filter;
 
+import android.opengl.GLES20;
+import android.util.Log;
+
 import com.arfilters.GLTools;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.data.Matrix3x3Data;
 
 abstract class BufferedFilter extends SingleShaderFilter {
 
+    private static final String TAG = SingleShaderFilter.class.getName();
+
     private static final float[] IDENTITY = new float[] {
             1f,0f,0f,0f,1f,0f,0f,0f,1f
     };
+
+    protected void setIdentityVertexMatrix() {
+        setVertexMatrix(IDENTITY);
+    }
+
+    protected void setVertexMatrix(float[] mat) {
+        vertexMatrixData.updateData(mat);
+    }
 
     BufferedFilter(Shader pt, Matrix3x3Data vertMatData,
                    VertexMatrixUpdater ptVmi, String nm) {
@@ -35,13 +48,19 @@ abstract class BufferedFilter extends SingleShaderFilter {
     @Override
     public final void prepareView() {
 
-        vertexMatrixData.updateData(IDENTITY);
+        int[] vp = new int[4];
+
+        GLES20.glGetIntegerv(GLES20.GL_VIEWPORT, vp, 0);
+
+        setIdentityVertexMatrix();
 
         int mainBuffer = GLTools.getCurrentFramebuffer();
 
         renderToBuffers();
 
         GLTools.setFramebuffer(mainBuffer);
+
+        GLES20.glViewport(vp[0], vp[1], vp[2], vp[3]);
 
     }
 

@@ -51,10 +51,6 @@ class RTTFilter extends BufferedFilter {
         rttShader.draw();
     }
 
-    protected FrameBuffer getFrameBuffer() {
-        return frameBuffer;
-    }
-
     protected RTTFilter(Shader rtt, Shader pt, FrameBuffer fb,
                       Matrix3x3Data vertMatData,
                       VertexMatrixUpdater ptVmi, String name) {

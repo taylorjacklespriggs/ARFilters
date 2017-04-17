@@ -18,11 +18,13 @@
 package com.arfilters.filter;
 
 import android.opengl.GLES20;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import static com.arfilters.GLTools.FrameBuffer;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.data.Matrix3x3Data;
+import com.arfilters.shader.data.TextureLocationData;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.locks.Condition;
@@ -46,13 +48,13 @@ public abstract class ImageSampleFilter extends RTTFilter {
     protected abstract ImageSampler createImageSampler();
 
     private int getPixel(int x, int y, int channel) {
-        int pixel = imageData.get((y*windowW+x)*4+channel);
+        int pixel = imageData.get((y*sampleBuffer.getWidth()+x)*4+channel);
         if(pixel < 0)
             pixel += 256;
         return pixel;
     }
 
-    protected void sampleFrameBuffer() {
+    private void sampleFrameBuffer() {
         synchronized(this) {
             if(requiresUpdate) {
                 if (imageSampler != null) {
@@ -60,8 +62,12 @@ public abstract class ImageSampleFilter extends RTTFilter {
                     imageSampler = null;
                 }
                 if (nFrames >= updateFrequency) {
+                    sampleBuffer.enable();
+                    setVertexMatrix(sampleMatrix);
+                    sampleShader.draw();
+                    setIdentityVertexMatrix();
                     imageLock.lock();
-                    GLES20.glReadPixels(windowX, windowY, windowW, windowH,
+                    GLES20.glReadPixels(0, 0, sampleBuffer.getWidth(), sampleBuffer.getHeight(),
                             GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, imageData);
                     nFrames = 0;
                     requiresUpdate = false;
@@ -73,28 +79,41 @@ public abstract class ImageSampleFilter extends RTTFilter {
         }
     }
 
-    @Override
-    protected void renderToBuffers() {
-        super.renderToBuffers();
-        sampleFrameBuffer();
+    protected void preSample() {
     }
 
-    public ImageSampleFilter(Shader rtt, Shader pt, FrameBuffer fb,
-                             Matrix3x3Data vertMatData,
-                             VertexMatrixUpdater ptVmi,
-                             float windowScale,
-                             int subSamp, int updateFreq, String name) {
+    protected void postSample() {
+    }
+
+    @Override
+    protected final void renderToBuffers() {
+        super.renderToBuffers();
+        preSample();
+        sampleFrameBuffer();
+        postSample();
+    }
+
+    ImageSampleFilter(Shader rtt, Shader pt, Shader sampShader, FrameBuffer fb,
+                      FrameBuffer sampBuffer,
+                      Matrix3x3Data vertMatData,
+                      VertexMatrixUpdater ptVmi,
+                      float windowScale,
+                      int updateFreq, String name) {
         super(rtt, pt, fb, vertMatData, ptVmi, name);
-        windowW = (int)(fb.getWidth()*windowScale);
-        windowH = (int)(fb.getHeight()*windowScale);
-        windowX = (fb.getWidth()-windowW)/2;
-        windowY = (fb.getHeight()-windowH)/2;
-        subSampling = subSamp;
+        sampleMatrix = new float[] {
+                1f/windowScale, 0, 0,
+                0, 1f/windowScale, 0,
+                0, 0, 1f
+        };
+        sampleBuffer = sampBuffer;
+        sampleShader = sampShader;
+        sampleShader.addUniform("u_Texture", new TextureLocationData(
+                GLES20.GL_TEXTURE_2D, 0, fb.getTextureID()));
         updateFrequency = updateFreq;
         imageLock = new ReentrantLock(true);
         imageAvailable = imageLock.newCondition();
         requiresUpdate = true;
-        imageData = ByteBuffer.allocateDirect(windowW*windowH*4);
+        imageData = ByteBuffer.allocateDirect(sampleBuffer.getWidth()*sampleBuffer.getHeight()*4);
         processingThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -103,11 +122,11 @@ public abstract class ImageSampleFilter extends RTTFilter {
                     while (true) {
                         imageAvailable.await();
                         imageSampler = createImageSampler();
-                        for(int i = 0; i < windowW; i += subSampling)
-                            for(int j = 0; j < windowH; j += subSampling)
-                                imageSampler.feed(i, j, getPixel(i, j, 0),
-                                        getPixel(i, j, 1), getPixel(i, j, 2),
-                                        getPixel(i, j, 3));
+                        for (int x = 0; x < sampleBuffer.getWidth(); ++x)
+                            for (int y = 0; y < sampleBuffer.getHeight(); ++y)
+                                imageSampler.feed(x, y, getPixel(x, y, 0),
+                                        getPixel(x, y, 1), getPixel(x, y, 2),
+                                        getPixel(x, y, 3));
                         synchronized (this) {
                             requiresUpdate = true;
                         }
@@ -122,13 +141,15 @@ public abstract class ImageSampleFilter extends RTTFilter {
         processingThread.start();
     }
 
+    private final float[] sampleMatrix;
+    private Shader sampleShader;
+    private final FrameBuffer sampleBuffer;
     private final Lock imageLock;
     private final Condition imageAvailable;
     private boolean requiresUpdate;
     private final ByteBuffer imageData;
     private final Thread processingThread;
-    private final int windowX, windowY, windowW, windowH;
-    private final int updateFrequency, subSampling;
+    private final int updateFrequency;
     private int nFrames;
     private ImageSampler imageSampler;
 }

@@ -16,17 +16,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /*
- *  All final pass fragment shader programs should use this main() and implement
- *  computeTextureCoordinates(out vec2) and computeColor(out vec3, in vec2).
- *  This reduces reused code.
+ *  Does not modify input color.
  */
 
-void main() {
-    vec2 texCoord;
-    getTextureCoordinates(texCoord);
-    //if(texCoord.x > 0. && texCoord.x < 1. && texCoord.y > 0. && texCoord.y < 1.) {
-        computeColor(gl_FragColor, texCoord);
-    //}
+void computeColor(out vec4 color, in vec2 texCoord) {
+    getTextureFragment(color, texCoord);
 }

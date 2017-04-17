@@ -26,20 +26,23 @@ import com.taylorjs.hproject.arfilters.R;
 
 public class LinearContrastFilter extends ImageSampleFilter {
 
-    private static final String TAG = "LinearContrastFilter";
+    private static final String TAG = LinearContrastFilter.class.getName();
 
     public static LinearContrastFilter create(ShaderGenerator camGen,
                                               ShaderGenerator texGen,
                                               FrameBuffer fb,
+                                              FrameBuffer sampler,
                                               Matrix3x3Data vertMatData,
                                               VertexMatrixUpdater ptVmi,
                                               int updateFreq) {
         camGen.setComputeColor(R.raw.passthrough);
         Shader ctt = camGen.generateShader();
+        texGen.setComputeColor(R.raw.passthrough);
+        Shader samp = texGen.generateShader();
         texGen.setComputeColor(R.raw.linear_contrast);
         Shader contrast = texGen.generateShader();
-        return new LinearContrastFilter(ctt, contrast, fb, vertMatData, ptVmi,
-                .5f, updateFreq, "Linear Contrast");
+        return new LinearContrastFilter(ctt, contrast, samp, fb, sampler,
+                vertMatData, ptVmi, updateFreq, "Linear Contrast");
     }
 
     private class ContrastInfo implements ImageSampler {
@@ -65,18 +68,15 @@ public class LinearContrastFilter extends ImageSampleFilter {
         return new ContrastInfo();
     }
 
-    private LinearContrastFilter(Shader rtt, Shader pt, FrameBuffer fb,
+    private LinearContrastFilter(Shader rtt, Shader pt, Shader samp, FrameBuffer fb, FrameBuffer sampler,
                                  Matrix3x3Data vertMatData,
                                  VertexMatrixUpdater ptVmi,
-                                 float windowScale,
                                  int updateFreq, String name) {
-        super(rtt, pt, fb, vertMatData, ptVmi, windowScale, 4, updateFreq, name);
-        info = new ContrastInfo();
+        super(rtt, pt, samp, fb, sampler, vertMatData, ptVmi, 1f, updateFreq, name);
         affineData = new FloatData(0f);
         scaleData = new FloatData(1f);
         pt.addUniform("u_Affine", affineData);
         pt.addUniform("u_Scale", scaleData);
     }
-    private final ContrastInfo info;
     private final FloatData affineData, scaleData;
 }

@@ -45,6 +45,7 @@ public class FilterGenerator {
     private static final int BUFFER_WIDTH = CAMERA_WIDTH, BUFFER_HEIGHT = CAMERA_HEIGHT;
     private static final float THRESHOLD = .1f;
     private static final float STRICTNESS = 20f;
+    private static final float SAMPLE_SCALE = 1f/8f;
 
     public int getCameraTextureLocation() {
         return cameraTextureLocation;
@@ -97,39 +98,9 @@ public class FilterGenerator {
         return LocalContrastFilter.create(
                 fromCameraShaderGenerator.copy(),
                 fromTextureShaderGenerator.copy(),
-                buffers[0][0],
-                buffers[0][1],
-                alternateBuffer,
-                vertexMatrixData,
-                eyeUpdate);
-    }
-
-    /*
-     * This shader subtracts noise
-     */
-    private Filter generateDarknessFilter(float halfLife, float sensitivity) {
-        return DarknessFilter.create(
-                fromCameraShaderGenerator.copy(),
-                fromTextureShaderGenerator.copy(),
-                buffers[0][0],
-                buffers[0][1],
-                alternateBuffer,
-                vertexMatrixData,
-                halfLife,
-                sensitivity,
-                eyeUpdate);
-    }
-
-    /*
-     * Simple 3x3 box blur repeated iters times
-     */
-    private Filter generateBlurFilter(int iters) {
-        return BlurFilter.create(
-                fromCameraShaderGenerator.copy(),
-                fromTextureShaderGenerator.copy(),
-                buffers[0][0],
-                buffers[0][1],
-                iters,
+                buffers[0],
+                buffers[1],
+                buffers[2],
                 vertexMatrixData,
                 eyeUpdate);
     }
@@ -141,8 +112,8 @@ public class FilterGenerator {
         return ToonFilter.create(
                 fromCameraShaderGenerator.copy(),
                 fromTextureShaderGenerator.copy(),
-                buffers[0][0],
-                buffers[0][1],
+                buffers[0],
+                buffers[1],
                 threshData,
                 vertexMatrixData,
                 eyeUpdate);
@@ -156,9 +127,10 @@ public class FilterGenerator {
                 fromCameraShaderGenerator.copy(),
                 fromTextureShaderGenerator.copy(),
                 halfLife,
-                buffers[0][0],
-                buffers[0][1],
-                alternateBuffer,
+                buffers[0],
+                buffers[1],
+                buffers[2],
+                sampleBuffer,
                 vertexMatrixData,
                 eyeUpdate);
     }
@@ -167,44 +139,54 @@ public class FilterGenerator {
         return RTTFilter.create(
                 fromCameraShaderGenerator,
                 fromTextureShaderGenerator,
-                buffers[0][0],
+                buffers[0],
                 vertexMatrixData,
                 eyeUpdate);
     }
 
-    private Filter generateContrastFilter(int numFrames) {
+    private Filter generateContrastFilter() {
         return LinearContrastFilter.create(
                 fromCameraShaderGenerator,
                 fromTextureShaderGenerator,
-                buffers[0][0],
+                buffers[0],
+                sampleBuffer,
                 vertexMatrixData,
                 eyeUpdate,
-                numFrames);
+                0);
     }
 
-    private Filter generateAdvancedContrastFilter(int subSamp,
-                                                  int numFrames,
-                                                  float windowScale) {
+    private Filter generateTestSampleFilter() {
+        return TestSampleFilter.create(
+                fromCameraShaderGenerator,
+                fromTextureShaderGenerator,
+                buffers[0],
+                sampleBuffer,
+                vertexMatrixData,
+                eyeUpdate);
+    }
+
+    private Filter generateAdvancedContrastFilter(float windowScale) {
         return AdvancedContrastFilter.create(
                 fromCameraShaderGenerator,
                 fromTextureShaderGenerator,
-                buffers[0][0],
+                buffers[0],
+                sampleBuffer,
                 vertexMatrixData,
                 eyeUpdate,
-                subSamp,
-                numFrames,
+                0,
                 windowScale);
     }
 
     public Collection<Filter> generateFilters() {
         ArrayList<Filter> filters = new ArrayList<>();
+        filters.add(generateTestSampleFilter());
         filters.add(generateLocalContrastFilter());
         filters.add(generateToonFilter());
         filters.add(generateRTTFilter());
-        filters.add(generateAdvancedContrastFilter(4, 10, .5f));
-        filters.add(generateAdvancedContrastFilter(2, 10, .3f));
-        filters.add(generateAdvancedContrastFilter(1, 10, .1f));
-        filters.add(generateContrastFilter(60));
+        filters.add(generateAdvancedContrastFilter(1f));
+        filters.add(generateAdvancedContrastFilter(.5f));
+        filters.add(generateAdvancedContrastFilter(.25f));
+        filters.add(generateContrastFilter());
         filters.add(generateMonochromeFadingFilter(20f/60f));
         for(FilterType ft: FilterType.values())
             filters.add(generateFilter(ft));
@@ -261,13 +243,13 @@ public class FilterGenerator {
                 rl.readRawTextFile(R.raw.fs_main), false, false,
                 com.arfilters.shader.Precision.MEDIUM);
 
-        buffers = new FrameBuffer[2][2];
-        for(FrameBuffer[] fba : buffers)
-            for(int i = 0; i < fba.length; ++i)
-                fba[i] = new GLTools.FrameBuffer(BUFFER_WIDTH, BUFFER_HEIGHT, GLES20.GL_RGBA, GLES20.GL_RGBA,
-                        GLES20.GL_UNSIGNED_BYTE, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
+        buffers = new FrameBuffer[3];
+        for(int i = 0; i < buffers.length; ++i)
+            buffers[i] = new GLTools.FrameBuffer(BUFFER_WIDTH, BUFFER_HEIGHT, GLES20.GL_RGBA, GLES20.GL_RGBA,
+                    GLES20.GL_UNSIGNED_BYTE, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
 
-        alternateBuffer = new GLTools.FrameBuffer(BUFFER_WIDTH, BUFFER_HEIGHT, GLES20.GL_RGBA, GLES20.GL_RGBA,
+        sampleBuffer = new GLTools.FrameBuffer((int)(BUFFER_WIDTH*SAMPLE_SCALE),
+                (int)(BUFFER_HEIGHT*SAMPLE_SCALE), GLES20.GL_RGBA, GLES20.GL_RGBA,
                 GLES20.GL_UNSIGNED_BYTE, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
 
         vertexMatrixData = new Matrix3x3Data();
@@ -352,8 +334,8 @@ public class FilterGenerator {
     private final ShaderGenerator fromCameraShaderGenerator, fromTextureShaderGenerator;
     private final ShaderInitializer defaultShaderInitializer, edgeShaderInitializer;
 
-    private final FrameBuffer[][] buffers;
-    private final FrameBuffer alternateBuffer;
+    private final FrameBuffer[] buffers;
+    private final FrameBuffer sampleBuffer;
 
     private final ViewInfo viewInfo = new ViewInfo();
     private final VertexMatrixUpdater eyeUpdate;

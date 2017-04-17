@@ -17,8 +17,6 @@
 
 package com.arfilters.filter;
 
-import android.util.Log;
-
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.data.Matrix3x3Data;
 
@@ -195,7 +193,6 @@ class ColorblindFilter extends ColorMapFilter {
         chain = chain.mult(rgb2lms);
         map = map.sub(chain);
         map = map.add(identity);
-        Log.i("MAP", map.toString());
         colorMap = map.getValues();
     }
 

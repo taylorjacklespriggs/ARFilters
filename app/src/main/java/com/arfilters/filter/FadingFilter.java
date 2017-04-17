@@ -38,6 +38,7 @@ class FadingFilter extends ImageSampleFilter {
                                FrameBuffer front,
                                FrameBuffer back,
                                FrameBuffer camera,
+                               FrameBuffer sampleBuffer,
                                Matrix3x3Data vertMatData,
                                VertexMatrixUpdater ptVmi) {
         final float fps = 60f;
@@ -47,6 +48,10 @@ class FadingFilter extends ImageSampleFilter {
         // generate camera to texture shader
         Shader ctt = camGen.generateShader();
 
+        // generate sampling passthrough shader
+        texGen.setComputeColor(R.raw.passthrough);
+        Shader sampShader = texGen.generateShader();
+
         // generate mixing shader
         texGen.setComputeColor(R.raw.monochrome_mixing_texture);
         Shader mix = texGen.generateShader();
@@ -55,8 +60,8 @@ class FadingFilter extends ImageSampleFilter {
         texGen.setComputeColor(R.raw.monochrome_passthrough);
         Shader pt = texGen.generateShader();
 
-        return new FadingFilter(ctt, mix, pt, r, .5f, 8, 12, front, back,
-                camera, vertMatData, ptVmi);
+        return new FadingFilter(ctt, mix, pt, sampShader, r, .5f, 12, front, back,
+                camera, sampleBuffer, vertMatData, ptVmi);
     }
 
     private class ContrastSampler implements ImageSampler {
@@ -85,19 +90,17 @@ class FadingFilter extends ImageSampleFilter {
     }
 
     @Override
-    protected void renderToBuffers() {
-
-        // render camera to texture
-        cameraBuffer.enable();
-        // now cameraBuffer has original framebufferID
-        cameraToTextureShader.draw();
+    protected void preSample() {
 
         // mix cameraBuffer and backBuffer
-        backTextureData.newTextureLocation(backBuffer.getTextureID());
+        backTextureData.newTextureLocation(cameraBuffer.getTextureID());
         frontBuffer.enable();
         mixingShader.draw();
 
-        sampleFrameBuffer();
+    }
+
+    @Override
+    public void postSample() {
 
         // update frontTextureID for passThrough
         frontTextureData.newTextureLocation(frontBuffer.getTextureID());
@@ -109,12 +112,11 @@ class FadingFilter extends ImageSampleFilter {
 
     }
 
-    private FadingFilter(Shader ctt, Shader mix, Shader pt, float r,
-                         float windowScale, int subSamp, int updateFreq, FrameBuffer front, FrameBuffer back,
-                         FrameBuffer camera, Matrix3x3Data vertMatData,
+    private FadingFilter(Shader ctt, Shader mix, Shader pt, Shader sampShader, float r,
+                         float windowScale, int updateFreq, FrameBuffer front, FrameBuffer back,
+                         FrameBuffer camera, FrameBuffer sampleBuffer, Matrix3x3Data vertMatData,
                          VertexMatrixUpdater ptVmi) {
-        super(mix, pt, camera, vertMatData, ptVmi, windowScale, subSamp, updateFreq, "Fading");
-        cameraToTextureShader = ctt;
+        super(ctt, pt, sampShader, camera, sampleBuffer, vertMatData, ptVmi, windowScale, updateFreq, "Fading");
         mixingShader = mix;
         frontBuffer = front;
         backBuffer = back;
@@ -135,7 +137,7 @@ class FadingFilter extends ImageSampleFilter {
         pt.addUniform("u_Range", rangeData = new Vector2Data(0f, 1f/((1f-r))));
     }
 
-    private final Shader cameraToTextureShader, mixingShader;
+    private final Shader mixingShader;
     private FrameBuffer frontBuffer, backBuffer;
     private final FrameBuffer cameraBuffer;
     private final TextureLocationData

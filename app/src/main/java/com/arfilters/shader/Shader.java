@@ -31,7 +31,7 @@ import java.util.HashMap;
 
 public class Shader {
 
-    private static final String TAG = "Shader";
+    private static final String TAG = Shader.class.getName();
 
     public void addUniform(String name, ShaderData data) {
         uniforms.put(name, new Uniform(name, finalProgram, data));
@@ -88,6 +88,10 @@ public class Shader {
 
     }
 
+    public Shader clone() {
+        return new Shader(this);
+    }
+
     private void exit() {
 
         GLTools.checkGLError(TAG, "enter exit");
@@ -102,7 +106,6 @@ public class Shader {
 
     public Shader(int vProgram, int fProgram) {
         finalProgram = GLES20.glCreateProgram();
-        Log.i(TAG, "glCreateProgram()");
 
         GLES20.glAttachShader(finalProgram, vProgram);
 
@@ -113,6 +116,14 @@ public class Shader {
         GLES20.glUseProgram(finalProgram);
 
         uniforms = new HashMap<>();
+    }
+
+    private Shader(Shader other) {
+        finalProgram = other.finalProgram;
+        uniforms = new HashMap<>(other.uniforms);
+        for(int i = 0; i < vertexAttributes.length; ++i)
+            vertexAttributes[i] = other.vertexAttributes[i];
+        drawLength = other.drawLength;
     }
 
     private void updateUniforms() {
