@@ -16,16 +16,43 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /*
- *  Computes the edges for each color. Computes the length of the resulting color and passes
- *  through a sigmoid.
+ *  Does not modify input color.
  */
+
+uniform float u_Threshold;
+
+#define FIRST_T .1
+#define FIRST_V .0
+
+#define SECOND_T .3
+#define SECOND_V .3
+
+#define THIRD_T .8
+#define THIRD_V .6
+
+#define FINAL_V 1.
 
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
-    color.a =
+    float edge =
         length(vec2(dFdx(color.r), dFdy(color.r))) +
         length(vec2(dFdx(color.g), dFdy(color.g))) +
         length(vec2(dFdx(color.b), dFdy(color.b)));
+    edge /= u_Threshold;
+    float I = dot(color.rgb, vec3(1./3.));
+    if(I > 0.) {
+        float F;
+        if(I < FIRST_T) {
+            F = FIRST_V;
+        } else if(I < SECOND_T) {
+            F = SECOND_V;
+        } else if(I < THIRD_T) {
+            F = THIRD_V;
+        } else {
+            F = FINAL_V;
+        }
+        color.rgb *= F/I;
+        color.rgb -= vec3(edge);
+    }
 }

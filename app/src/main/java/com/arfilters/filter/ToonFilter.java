@@ -35,7 +35,6 @@ class ToonFilter extends BufferedFilter {
                              ShaderGenerator texGen,
                              FrameBuffer front,
                              FrameBuffer back,
-                             FloatData threshold,
                              Matrix3x3Data vertMatData,
                              VertexMatrixUpdater ptVmi) {
 
@@ -47,38 +46,33 @@ class ToonFilter extends BufferedFilter {
         texGen.setComputeColor(R.raw.blur);
         Shader quickBlurVert = texGen.generateShader();
 
-        // generate edge shader
-        texGen.setComputeColor(R.raw.toon_edges);
+        // create the final pass shader
+        texGen.setComputeColor(R.raw.toon_finalpass);
         texGen.setUseDerivatives(true);
-        Shader edge = texGen.generateShader();
-
-        // create the passThrough shader
-        texGen.setComputeColor(R.raw.toon_passthrough);
-        texGen.setUseDerivatives(false);
         Shader finalColor = texGen.generateShader();
 
         texGen.setComputeColor(R.raw.passthrough);
+        texGen.setUseDerivatives(false);
         Shader pt = texGen.generateShader();
 
-        return new ToonFilter(quickBlurHoriz, quickBlurVert, edge, finalColor, pt, front, back,
-                threshold, vertMatData, ptVmi);
+        return new ToonFilter(quickBlurHoriz, quickBlurVert, finalColor, pt,
+                front, back, vertMatData, ptVmi);
     }
 
     @Override
     protected void renderToBuffers() {
 
-        // render camera to texture
+        // compute the horizontal Gauss blur
         enableFrontBuffer();
         setHorizontalDelta();
         horizShader.draw();
 
+        // compute the vertical Gauss blur
         swapBuffers();
         setVerticalDelta();
         vertShader.draw();
 
-        swapBuffers();
-        edgeShader.draw();
-
+        // compute edges and discrete colours
         swapBuffers();
         finalShader.draw();
 
@@ -111,13 +105,11 @@ class ToonFilter extends BufferedFilter {
         deltaData.updateData(new float[] {0f, 1f/secondBuffer.getHeight()});
     }
 
-    private ToonFilter(Shader horiz, Shader vert, Shader edge, Shader col,
+    private ToonFilter(Shader horiz, Shader vert, Shader col,
                        Shader pt, FrameBuffer front,
                        FrameBuffer back,
-                       FloatData threshold,
                        Matrix3x3Data vertMatData, VertexMatrixUpdater ptVmi) {
         super(pt, vertMatData, ptVmi, "Toon Experimental");
-        edgeShader = edge;
         finalShader = col;
         firstBuffer = front;
         secondBuffer = back;
@@ -134,15 +126,12 @@ class ToonFilter extends BufferedFilter {
         vertShader.addUniform("u_Texture", bufferTextureData);
         vertShader.addUniform("u_Delta", deltaData);
 
-        edgeShader.addUniform("u_Texture", bufferTextureData);
-
         finalShader.addUniform("u_Texture", bufferTextureData);
-        finalShader.addUniform("u_Threshold", threshold);
 
         pt.addUniform("u_Texture", bufferTextureData);
     }
 
-    private final Shader horizShader, vertShader, edgeShader, finalShader;
+    private final Shader horizShader, vertShader, finalShader;
     private FrameBuffer firstBuffer, secondBuffer;
     private final TextureLocationData
             bufferTextureData;

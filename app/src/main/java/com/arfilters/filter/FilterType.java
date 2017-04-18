@@ -27,25 +27,22 @@ enum FilterType {
     PASS_THROUGH,
 
 
-    ZOOM,
-
-
-    ANAGLYPH,
-
-
     HUE_ROTATION,
     PROTANOPIA,
     DEUTERANOPIA,
     TRITANOPIA,
-
-
-    COLORBLIND_RG,
-
     INVERTED,
+
 
     GRAY_EDGES,
     GRADIENT_EDGES,
-    CHROMATIC_EDGES;
+    CHROMATIC_EDGES,
+
+
+    ZOOM,
+
+
+    ANAGLYPH;
 
     public String getName() {
         StringBuilder sb = new StringBuilder();
@@ -83,7 +80,6 @@ enum FilterType {
             case HUE_ROTATION:
             case ANAGLYPH:
                 return FilterClass.COLOR_MAP;
-            case COLORBLIND_RG:
             case INVERTED:
                 return FilterClass.COLOR_MOD;
             case GRAY_EDGES:
@@ -109,8 +105,6 @@ enum FilterType {
                 return R.raw.passthrough;
             case ZOOM:
                 return R.raw.zoomed_texture_coordinates;
-            case COLORBLIND_RG:
-                return R.raw.colorblind_rg;
             case INVERTED:
                 return R.raw.inverted;
             case GRAY_EDGES:

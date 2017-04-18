@@ -18,9 +18,12 @@
 package com.arfilters.shader;
 
 import android.opengl.GLES20;
+import android.util.Log;
 
 import com.arfilters.GLTools;
 import com.arfilters.ResourceLoader;
+
+import java.util.HashMap;
 
 public class ShaderGenerator {
 
@@ -76,7 +79,15 @@ public class ShaderGenerator {
         sb.append('\n');
         sb.append(mainString);
         String shader = sb.toString();
-        int fs = GLTools.loadGLShader(TAG, GLES20.GL_FRAGMENT_SHADER, shader);
+
+        int fs;
+        // check if the shader has already been compiled
+        if(reusablePrograms.containsKey(shader)) {
+            fs = reusablePrograms.get(shader);
+        } else {
+            fs = GLTools.loadGLShader(TAG, GLES20.GL_FRAGMENT_SHADER, shader);
+            reusablePrograms.put(shader, fs);
+        }
 
         Shader sh = new Shader(vertexShader, fs);
         if(initializer != null) {
@@ -97,16 +108,27 @@ public class ShaderGenerator {
         init(rl, vertexShader, getTextureFragmentString,
                 getTextureCoordinatesString, computeColorString, mainString,
                 useCamera, useDerivatives, floatPrecision, null);
+        reusablePrograms = new HashMap<>();
     }
 
     private ShaderGenerator(ShaderGenerator s) {
-        init(s.resourceLoader, s.vertexShader, s.getTextureFragmentString, s.getTextureCoordinatesString, s.computeColorString, s.mainString, s.useCamera, s.useDerivatives, s.floatPrecision, s.initializer);
+        init(s.resourceLoader, s.vertexShader, s.getTextureFragmentString,
+                s.getTextureCoordinatesString, s.computeColorString,
+                s.mainString, s.useCamera, s.useDerivatives, s.floatPrecision,
+                s.initializer);
+        reusablePrograms = s.reusablePrograms;
     }
 
-    private void init(ResourceLoader rl, int vertexShader, String getTextureFragmentString,
-                      String getTextureCoordinatesString, String computeColorString,
-                      String mainString, boolean useCamera, boolean useDerivatives,
-                      Precision floatPrecision, ShaderInitializer si) {
+    private void init(ResourceLoader rl,
+                      int vertexShader,
+                      String getTextureFragmentString,
+                      String getTextureCoordinatesString,
+                      String computeColorString,
+                      String mainString,
+                      boolean useCamera,
+                      boolean useDerivatives,
+                      Precision floatPrecision,
+                      ShaderInitializer si) {
         this.resourceLoader = rl;
         this.vertexShader = vertexShader;
         this.getTextureFragmentString = getTextureFragmentString;
@@ -132,5 +154,7 @@ public class ShaderGenerator {
     private Precision floatPrecision;
 
     private ShaderInitializer initializer;
+
+    private final HashMap<String, Integer> reusablePrograms;
 
 }

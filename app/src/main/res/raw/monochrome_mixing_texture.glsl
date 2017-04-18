@@ -28,9 +28,10 @@
  void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
     // red as MSB
-    highp float gray1 = length(color.rgb);
+    highp float gray1, gray2;
+    gray1 = length(color.rgb);
     vec2 rg = texture2D(u_AlternateTexture, texCoord).rg;
-    highp float gray2 = 255.*rg.r;
+    gray2 = 255.*rg.r;
     gray2 += rg.g*255./256.; // g in range [0,1] but should be in [0,255/256]
     // add gray values
     gray1 += u_FadeAmount*gray2;

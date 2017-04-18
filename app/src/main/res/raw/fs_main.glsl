@@ -26,7 +26,7 @@
 void main() {
     vec2 texCoord;
     getTextureCoordinates(texCoord);
-    //if(texCoord.x > 0. && texCoord.x < 1. && texCoord.y > 0. && texCoord.y < 1.) {
+    if(texCoord.x >= 0. && texCoord.x <= 1. && texCoord.y >= 0. && texCoord.y <= 1.) {
         computeColor(gl_FragColor, texCoord);
-    //}
+    }
 }

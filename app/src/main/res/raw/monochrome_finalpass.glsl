@@ -17,17 +17,15 @@
  */
 
 /*
- *  Does not modify input color.
+ *  Takes red to be MSB and green to be LSB of grayscale color.
  */
 
-uniform float u_Threshold;
-
-#define NCOLORS 5.
+uniform sampler2D u_CDF;
 
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
-    float intens = dot(color.rgb, vec3(NCOLORS/3.));
-    if(intens > 0.)
-        color.rgb *= float(int(intens+.5))/intens+.5/NCOLORS;
-    color.rgb -= vec3(color.a/u_Threshold);
+    highp float gray = color.r*255.;
+    gray += color.g*255./256.;
+    gray /= 256.;
+    color.rgb = vec3(texture2D(u_CDF, vec2(gray, 0.)).a);
 }
