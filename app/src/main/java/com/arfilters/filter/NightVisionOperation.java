@@ -31,22 +31,22 @@ import java.nio.ByteBuffer;
 
 import static com.arfilters.GLTools.FrameBuffer;
 
-class NightVisionFilter extends ImageSampleFilter {
+class NightVisionOperation extends ImageSampleOperation {
 
-    private static final String TAG = NightVisionFilter.class.getName();
+    private static final String TAG = NightVisionOperation.class.getName();
 
     private static final int HIST_MAJOR_COUNT = 256;
     private static final int HIST_MINOR_COUNT = 16;
 
-    static NightVisionFilter create(ShaderGenerator camGen,
-                                    ShaderGenerator texGen,
-                                    int halfLife,
-                                    FrameBuffer front,
-                                    FrameBuffer back,
-                                    FrameBuffer camera,
-                                    FrameBuffer sampleBuffer,
-                                    Matrix3x3Data vertMatData,
-                                    VertexMatrixUpdater ptVmi) {
+    static NightVisionOperation create(ShaderGenerator camGen,
+                                       ShaderGenerator texGen,
+                                       int halfLife,
+                                       FrameBuffer front,
+                                       FrameBuffer back,
+                                       FrameBuffer camera,
+                                       FrameBuffer sampleBuffer,
+                                       Matrix3x3Data vertMatData,
+                                       VertexMatrixUpdater ptVmi) {
         float r = (float)Math.pow(.5, 1./halfLife); // fading factor
 
         // generate camera to texture shader
@@ -64,7 +64,7 @@ class NightVisionFilter extends ImageSampleFilter {
         texGen.setComputeColor(R.raw.monochrome_finalpass);
         Shader pt = texGen.generateShader();
 
-        return new NightVisionFilter(ctt, mix, pt, sampShader, r, 1f, 0, front, back,
+        return new NightVisionOperation(ctt, mix, pt, sampShader, r, 1f, 0, front, back,
                 camera, sampleBuffer, vertMatData, ptVmi);
     }
 
@@ -92,6 +92,12 @@ class NightVisionFilter extends ImageSampleFilter {
             GLES20.glTexSubImage2D(GLES20.GL_TEXTURE_2D, 0, 0, 0, histogram.length, 1,
                     GLES20.GL_ALPHA, GLES20.GL_UNSIGNED_BYTE, cdf);
         }
+    }
+
+    @Override
+    public void initialize() {
+        super.initialize();
+        backBuffer.clear(0f, 0f, 0f, 0f);
     }
 
     @Override
@@ -127,11 +133,11 @@ class NightVisionFilter extends ImageSampleFilter {
 
     }
 
-    private NightVisionFilter(Shader ctt, Shader mix, Shader pt, Shader sampShader,
-                              float r, float windowScale, int updateFreq,
-                              FrameBuffer front, FrameBuffer back,
-                              FrameBuffer camera, FrameBuffer sampleBuffer,
-                              Matrix3x3Data vertMatData, VertexMatrixUpdater ptVmi) {
+    private NightVisionOperation(Shader ctt, Shader mix, Shader pt, Shader sampShader,
+                                 float r, float windowScale, int updateFreq,
+                                 FrameBuffer front, FrameBuffer back,
+                                 FrameBuffer camera, FrameBuffer sampleBuffer,
+                                 Matrix3x3Data vertMatData, VertexMatrixUpdater ptVmi) {
         super(ctt, pt, sampShader, camera, sampleBuffer, vertMatData, ptVmi,
                 windowScale, updateFreq, "Night Vision");
 

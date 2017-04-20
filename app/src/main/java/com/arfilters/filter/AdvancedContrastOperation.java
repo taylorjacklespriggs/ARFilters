@@ -25,31 +25,29 @@ import com.arfilters.shader.ShaderGenerator;
 import com.arfilters.shader.data.FloatData;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.arfilters.shader.data.TextureLocationData;
-import com.arfilters.shader.data.Vector2Data;
-import com.arfilters.shader.data.Vector4Data;
 import com.taylorjs.hproject.arfilters.R;
 
 import java.nio.ByteBuffer;
 
 import static com.arfilters.GLTools.FrameBuffer;
 
-public class AdvancedContrastFilter extends ImageSampleFilter {
+public class AdvancedContrastOperation extends ImageSampleOperation {
 
-    public static AdvancedContrastFilter create(ShaderGenerator camGen,
-                                                ShaderGenerator texGen,
-                                                FrameBuffer fb,
-                                                FrameBuffer sampBuffer,
-                                                Matrix3x3Data vertMatData,
-                                                VertexMatrixUpdater ptVmi,
-                                                int updateFreq,
-                                                float windowScale) {
+    public static AdvancedContrastOperation create(ShaderGenerator camGen,
+                                                   ShaderGenerator texGen,
+                                                   FrameBuffer fb,
+                                                   FrameBuffer sampBuffer,
+                                                   Matrix3x3Data vertMatData,
+                                                   VertexMatrixUpdater ptVmi,
+                                                   int updateFreq,
+                                                   float windowScale) {
         camGen.setComputeColor(R.raw.passthrough);
         Shader ctt = camGen.generateShader();
         texGen.setComputeColor(R.raw.passthrough);
         Shader samp = texGen.generateShader();
         texGen.setComputeColor(R.raw.advanced_contrast);
         Shader contrast = texGen.generateShader();
-        return new AdvancedContrastFilter(ctt, contrast, samp, fb, sampBuffer, vertMatData,
+        return new AdvancedContrastOperation(ctt, contrast, samp, fb, sampBuffer, vertMatData,
                 ptVmi, windowScale, updateFreq, "Advanced Contrast");
     }
 
@@ -88,15 +86,14 @@ public class AdvancedContrastFilter extends ImageSampleFilter {
         return new ContrastInfo();
     }
 
-    private AdvancedContrastFilter(Shader rtt, Shader pt, Shader sampShader,
-                                   FrameBuffer fb, FrameBuffer sampBuffer,
-                                   Matrix3x3Data vertMatData,
-                                   VertexMatrixUpdater ptVmi,
-                                   float windowScale,
-                                   int updateFreq, String name) {
+    private AdvancedContrastOperation(Shader rtt, Shader pt, Shader sampShader,
+                                      FrameBuffer fb, FrameBuffer sampBuffer,
+                                      Matrix3x3Data vertMatData,
+                                      VertexMatrixUpdater ptVmi,
+                                      float windowScale,
+                                      int updateFreq, String name) {
         super(rtt, pt, sampShader, fb, sampBuffer, vertMatData, ptVmi, windowScale,
                 updateFreq, name);
-        info = new ContrastInfo();
         histogram = new int[256][3];
         cdf = ByteBuffer.allocateDirect(4*256);
         for(int i = 0; i < 256; ++i) {
@@ -115,7 +112,6 @@ public class AdvancedContrastFilter extends ImageSampleFilter {
                 textureLocation));
         pt.addUniform("u_WindowScale", new FloatData(windowScale));
     }
-    private final ContrastInfo info;
     private final int histogram[][];
     private final ByteBuffer cdf;
     private final int textureLocation;

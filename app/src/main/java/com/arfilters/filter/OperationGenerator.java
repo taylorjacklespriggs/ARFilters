@@ -39,7 +39,7 @@ import java.util.Collection;
 
 import javax.microedition.khronos.opengles.GL10;
 
-public class FilterGenerator {
+public class OperationGenerator {
 
     private static final int CAMERA_WIDTH = 1920, CAMERA_HEIGHT = 1080;
     private static final int BUFFER_WIDTH = CAMERA_WIDTH, BUFFER_HEIGHT = CAMERA_HEIGHT;
@@ -55,9 +55,9 @@ public class FilterGenerator {
         return viewInfo;
     }
 
-    private Filter generateFilter(FilterType type) {
+    private ImageOperation generateFilter(OperationType type) {
         if(type.isColorblindType()) {
-            return new ColorblindFilter(
+            return new ColorblindOperation(
                     colorMapShader,
                     vertexMatrixData,
                     eyeUpdate,
@@ -67,7 +67,7 @@ public class FilterGenerator {
 
         switch(type) {
             case ANAGLYPH:
-                return new AnaglyphFilter(
+                return new AnaglyphOperation(
                         colorMapShader,
                         vertexMatrixData,
                         eyeUpdate,
@@ -75,7 +75,7 @@ public class FilterGenerator {
                         anaglyphMaps[0],
                         anaglyphMaps[1]);
             case HUE_ROTATION:
-                return new HueRotationFilter(
+                return new HueRotationOperation(
                         colorMapShader,
                         vertexMatrixData,
                         eyeUpdate,
@@ -83,19 +83,20 @@ public class FilterGenerator {
         }
 
         Shader sh = type.generateShader(fromCameraShaderGenerator.copy());
-        return new SingleShaderFilter(sh, vertexMatrixData, eyeUpdate, type.getName());
+        return new SingleShaderOperation(sh, vertexMatrixData, eyeUpdate, type.getName());
     }
 
     /*
      * This shader computes local contrast
      */
-    private Filter generateLocalContrastFilter() {
-        return LocalContrastFilter.create(
+    private ImageOperation generateLocalContrastOperation(float fade) {
+        return LocalContrastOperation.create(
                 fromCameraShaderGenerator.copy(),
                 fromTextureShaderGenerator.copy(),
                 buffers[0],
                 buffers[1],
                 buffers[2],
+                fade,
                 vertexMatrixData,
                 eyeUpdate);
     }
@@ -103,8 +104,8 @@ public class FilterGenerator {
     /*
      * Toon filter
      */
-    private Filter generateToonFilter() {
-        return ToonFilter.create(
+    private ImageOperation generateToonOperation() {
+        return ToonOperation.create(
                 fromCameraShaderGenerator.copy(),
                 fromTextureShaderGenerator.copy(),
                 buffers[0],
@@ -116,8 +117,8 @@ public class FilterGenerator {
     /*
      * This shader implements image integration and histogram equalization
      */
-    private Filter generateNightVisionFilter(int halfLife) {
-        return NightVisionFilter.create(
+    private ImageOperation generateNightVisionOperation(int halfLife) {
+        return NightVisionOperation.create(
                 fromCameraShaderGenerator.copy(),
                 fromTextureShaderGenerator.copy(),
                 halfLife,
@@ -132,8 +133,8 @@ public class FilterGenerator {
     /*
      * A simple contrast adjustment filter
      */
-    private Filter generateLinearContrastFilter() {
-        return LinearContrastFilter.create(
+    private ImageOperation generateLinearContrastOperation() {
+        return LinearContrastOperation.create(
                 fromCameraShaderGenerator.copy(),
                 fromTextureShaderGenerator.copy(),
                 buffers[0],
@@ -146,8 +147,8 @@ public class FilterGenerator {
     /*
      * A histogram equalization filter that equalizes each channel independently
      */
-    private Filter generateAdvancedContrastFilter(float windowScale) {
-        return AdvancedContrastFilter.create(
+    private ImageOperation generateAdvancedContrastOperation(float windowScale) {
+        return AdvancedContrastOperation.create(
                 fromCameraShaderGenerator.copy(),
                 fromTextureShaderGenerator.copy(),
                 buffers[0],
@@ -158,20 +159,20 @@ public class FilterGenerator {
                 windowScale);
     }
 
-    public Collection<Filter> generateFilters() {
-        ArrayList<Filter> filters = new ArrayList<>();
-        for(FilterType ft: FilterType.values())
-            filters.add(generateFilter(ft));
-        filters.add(generateNightVisionFilter(60));
-        filters.add(generateLinearContrastFilter());
-        filters.add(generateAdvancedContrastFilter(1f));
-        filters.add(generateAdvancedContrastFilter(.25f));
-        filters.add(generateLocalContrastFilter());
-        filters.add(generateToonFilter());
-        return filters;
+    public Collection<ImageOperation> generateImageOperations() {
+        ArrayList<ImageOperation> imageOperations = new ArrayList<>();
+        for(OperationType ft: OperationType.values())
+            imageOperations.add(generateFilter(ft));
+        imageOperations.add(generateNightVisionOperation(60));
+        imageOperations.add(generateLinearContrastOperation());
+        imageOperations.add(generateAdvancedContrastOperation(1f));
+        imageOperations.add(generateAdvancedContrastOperation(.25f));
+        imageOperations.add(generateLocalContrastOperation(.9f));
+        imageOperations.add(generateToonOperation());
+        return imageOperations;
     }
 
-    private static final String TAG = FilterGenerator.class.getName();
+    private static final String TAG = OperationGenerator.class.getName();
 
     private ShaderInitializer genShaderInit(TextureLocationData texData) {
         ShaderInitializer si = new ShaderInitializer("a_Position",
@@ -186,7 +187,7 @@ public class FilterGenerator {
         return genShaderInit(cameraLocationData);
     }
 
-    public FilterGenerator(ResourceLoader rl) {
+    public OperationGenerator(ResourceLoader rl) {
 
         eyeUpdate = new VertexMatrixUpdater() {
             @Override

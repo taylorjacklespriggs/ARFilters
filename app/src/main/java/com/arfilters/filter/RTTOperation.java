@@ -17,26 +17,32 @@
 
 package com.arfilters.filter;
 
+import android.opengl.GLES20;
+
+import static com.arfilters.GLTools.FrameBuffer;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.arfilters.shader.data.TextureLocationData;
-import com.arfilters.shader.data.VertexAttributeData;
 
-class ColorMapFilter extends SingleShaderFilter {
+class RTTOperation extends BufferedOperation {
 
-    void updateColorMap(float[] colorMap) {
-        colorMapData.updateData(colorMap);
+    @Override
+    protected void renderToBuffers() {
+        frameBuffer.enable();
+        rttShader.draw();
     }
 
-    ColorMapFilter(Shader sh,
-                   Matrix3x3Data vertMatrix,
-                   VertexMatrixUpdater vmi,
-                   Matrix3x3Data colorMapMat,
-                   String nm) {
-        super(sh, vertMatrix, vmi, nm);
-        colorMapData = colorMapMat;
+    protected RTTOperation(Shader rtt, Shader pt, FrameBuffer fb,
+                           Matrix3x3Data vertMatData,
+                           VertexMatrixUpdater ptVmi, String name) {
+        super(pt, vertMatData, ptVmi, name);
+        rttShader = rtt;
+        frameBuffer = fb;
+        pt.addUniform("u_Texture", new TextureLocationData(
+                GLES20.GL_TEXTURE_2D, 0, fb.getTextureID()));
     }
 
-    private final Matrix3x3Data colorMapData;
+    private final Shader rttShader;
+    private FrameBuffer frameBuffer;
 
 }

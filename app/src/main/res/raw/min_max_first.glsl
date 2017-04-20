@@ -42,7 +42,7 @@ void getComponents(out highp vec2 comps, in vec4 varIn) {
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
 
-    highp float gray = dot(color.rgb, vec3(1.))*255./3.;
+    highp float gray = dot(color.rgb, vec3(255./3.));
 
     highp vec2 thisPixel;
     getComponents(thisPixel, texture2D(u_BufferTexture, texCoord));
@@ -57,8 +57,8 @@ void computeColor(out vec4 color, in vec2 texCoord) {
     thisPixel.x = min(thisPixel.x, pnbor.x-pnbor.y);
 
     thisPixel.y = max(thisPixel.y, gray);
-    thisPixel.y = max(thisPixel.y, nnbor.y+nnbor.y);
-    thisPixel.y = max(thisPixel.y, pnbor.y+pnbor.y);
+    thisPixel.y = max(thisPixel.y, nnbor.x+nnbor.y);
+    thisPixel.y = max(thisPixel.y, pnbor.x+pnbor.y);
 
     setGray(color.rg, thisPixel.x);
     setGray(color.ba, thisPixel.y);

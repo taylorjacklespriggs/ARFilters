@@ -19,7 +19,7 @@ package com.arfilters.filter;
 
 import com.arfilters.shader.ViewInfo;
 
-public interface Filter {
+public interface ImageOperation {
 
     String getName();
 

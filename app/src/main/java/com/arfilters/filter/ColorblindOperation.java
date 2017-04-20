@@ -20,7 +20,7 @@ package com.arfilters.filter;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.data.Matrix3x3Data;
 
-class ColorblindFilter extends ColorMapFilter {
+class ColorblindOperation extends ColorMapOperation {
 
     private static class Matrix {
         static final int size = 3;
@@ -146,7 +146,7 @@ class ColorblindFilter extends ColorMapFilter {
         final double[][] values;
     }
 
-    private static Matrix getLMSDeficitMatrix(FilterType ft) {
+    private static Matrix getLMSDeficitMatrix(OperationType ft) {
         switch(ft) {
             case DEUTERANOPIA:
                 return new Matrix(new double[][] {
@@ -180,11 +180,11 @@ class ColorblindFilter extends ColorMapFilter {
         updateColorMap(colorMap);
     }
 
-    ColorblindFilter(Shader sh,
-                     Matrix3x3Data vertMatrix,
-                     VertexMatrixUpdater vmi,
-                     Matrix3x3Data colorMapMat,
-                     FilterType ft) {
+    ColorblindOperation(Shader sh,
+                        Matrix3x3Data vertMatrix,
+                        VertexMatrixUpdater vmi,
+                        Matrix3x3Data colorMapMat,
+                        OperationType ft) {
         super(sh, vertMatrix, vmi, colorMapMat, ft.getName());
         Matrix map = err2mod;
         Matrix chain = err2mod;

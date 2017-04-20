@@ -21,7 +21,7 @@ import com.arfilters.shader.Shader;
 import com.arfilters.shader.ViewInfo;
 import com.arfilters.shader.data.Matrix3x3Data;
 
-class SingleShaderFilter implements Filter {
+class SingleShaderOperation implements ImageOperation {
 
     @Override
     public String getName() {
@@ -45,10 +45,10 @@ class SingleShaderFilter implements Filter {
     @Override
     public void cleanup() {}
 
-    SingleShaderFilter(Shader sh,
-                       Matrix3x3Data vertMatData,
-                       VertexMatrixUpdater vmi,
-                       String nm) {
+    SingleShaderOperation(Shader sh,
+                          Matrix3x3Data vertMatData,
+                          VertexMatrixUpdater vmi,
+                          String nm) {
         shader = sh;
         vertexMatrixData = vertMatData;
         vertMatUpdater = vmi;

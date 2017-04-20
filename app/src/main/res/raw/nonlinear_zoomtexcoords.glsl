@@ -23,13 +23,17 @@
 varying vec2 v_TexCoord;
 
 void transform(inout vec2 coord) {
-    const float v1 = .02;
-    const float v2 = 1.;
-    const float v3 = 10.;
-    float lensq = dot(coord, coord);
-    lensq = v3*((sqrt(lensq+v2)-sqrt(v2))/sqrt(lensq)+v1);
-    coord *= lensq;
+    const float a = 4.;
+    const float b = 6.;
+    const float c = .01;
+    const float rta = sqrt(a);
+    const float rtc = sqrt(c);
+    float r = length(coord);
+    if(r > 0.) {
+        coord *= 1./c-(a-c)*atan(b*rtc*r/rta)/(rta*b*c*rtc*r);
+    }
 }
+
 
 void getTextureCoordinates(out vec2 texCoord) {
     texCoord = v_TexCoord;

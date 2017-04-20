@@ -20,19 +20,19 @@ package com.arfilters.filter;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.data.Matrix3x3Data;
 
-class HueRotationFilter extends ColorMapFilter {
+class HueRotationOperation extends ColorMapOperation {
 
     @Override
     public void prepareView() {
         updateColorMap(computeMatrix((float)((count++)*2*Math.PI/loopFrames)));
     }
 
-    HueRotationFilter(Shader sh,
-                      Matrix3x3Data vertMatrix,
-                      VertexMatrixUpdater vmi,
-                      Matrix3x3Data colorMapMat,
-                      int loop) {
-        super(sh, vertMatrix, vmi, colorMapMat, FilterType.HUE_ROTATION.getName());
+    HueRotationOperation(Shader sh,
+                         Matrix3x3Data vertMatrix,
+                         VertexMatrixUpdater vmi,
+                         Matrix3x3Data colorMapMat,
+                         int loop) {
+        super(sh, vertMatrix, vmi, colorMapMat, OperationType.HUE_ROTATION.getName());
         count = 0;
         loopFrames = loop;
     }

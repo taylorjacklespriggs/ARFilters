@@ -24,24 +24,24 @@ import com.arfilters.shader.data.FloatData;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.taylorjs.hproject.arfilters.R;
 
-public class LinearContrastFilter extends ImageSampleFilter {
+public class LinearContrastOperation extends ImageSampleOperation {
 
-    private static final String TAG = LinearContrastFilter.class.getName();
+    private static final String TAG = LinearContrastOperation.class.getName();
 
-    public static LinearContrastFilter create(ShaderGenerator camGen,
-                                              ShaderGenerator texGen,
-                                              FrameBuffer fb,
-                                              FrameBuffer sampler,
-                                              Matrix3x3Data vertMatData,
-                                              VertexMatrixUpdater ptVmi,
-                                              int updateFreq) {
+    public static LinearContrastOperation create(ShaderGenerator camGen,
+                                                 ShaderGenerator texGen,
+                                                 FrameBuffer fb,
+                                                 FrameBuffer sampler,
+                                                 Matrix3x3Data vertMatData,
+                                                 VertexMatrixUpdater ptVmi,
+                                                 int updateFreq) {
         camGen.setComputeColor(R.raw.passthrough);
         Shader ctt = camGen.generateShader();
         texGen.setComputeColor(R.raw.passthrough);
         Shader samp = texGen.generateShader();
         texGen.setComputeColor(R.raw.linear_contrast);
         Shader contrast = texGen.generateShader();
-        return new LinearContrastFilter(ctt, contrast, samp, fb, sampler,
+        return new LinearContrastOperation(ctt, contrast, samp, fb, sampler,
                 vertMatData, ptVmi, updateFreq, "Linear Contrast");
     }
 
@@ -68,10 +68,10 @@ public class LinearContrastFilter extends ImageSampleFilter {
         return new ContrastInfo();
     }
 
-    private LinearContrastFilter(Shader rtt, Shader pt, Shader samp, FrameBuffer fb, FrameBuffer sampler,
-                                 Matrix3x3Data vertMatData,
-                                 VertexMatrixUpdater ptVmi,
-                                 int updateFreq, String name) {
+    private LinearContrastOperation(Shader rtt, Shader pt, Shader samp, FrameBuffer fb, FrameBuffer sampler,
+                                    Matrix3x3Data vertMatData,
+                                    VertexMatrixUpdater ptVmi,
+                                    int updateFreq, String name) {
         super(rtt, pt, samp, fb, sampler, vertMatData, ptVmi, 1f, updateFreq, name);
         affineData = new FloatData(0f);
         scaleData = new FloatData(1f);

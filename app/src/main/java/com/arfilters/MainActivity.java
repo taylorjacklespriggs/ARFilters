@@ -29,8 +29,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
-import com.arfilters.filter.Filter;
-import com.arfilters.filter.FilterGenerator;
+import com.arfilters.filter.ImageOperation;
+import com.arfilters.filter.OperationGenerator;
 import com.arfilters.shader.ViewInfo;
 
 import com.google.vr.sdk.base.AndroidCompat;
@@ -65,9 +65,9 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
     private SurfaceTexture cameraSurfaceTexture;
 
     private Vibrator vibrator;
-    private Collection<Filter> filters;
-    private Iterator<Filter> filterIterator;
-    private Filter currentFilter;
+    private Collection<ImageOperation> imageOperations;
+    private Iterator<ImageOperation> filterIterator;
+    private ImageOperation currentImageOperation;
 
     private RuntimeStatistics statistics;
 
@@ -139,7 +139,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
     @Override
     public void onRendererShutdown() {
 
-        for(Filter f: filters)
+        for(ImageOperation f: imageOperations)
             f.cleanup();
 
         cameraSurfaceTexture.release();
@@ -185,31 +185,31 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
 
         ResourceLoader resourceLoader = new ResourceLoader(this);
 
-        FilterGenerator filterGenerator = new FilterGenerator(resourceLoader);
+        OperationGenerator operationGenerator = new OperationGenerator(resourceLoader);
 
-        viewInfo = filterGenerator.getViewInfo();
+        viewInfo = operationGenerator.getViewInfo();
 
         // Create texture for camera preview
-        cameraTextureLocation = filterGenerator.getCameraTextureLocation();
+        cameraTextureLocation = operationGenerator.getCameraTextureLocation();
 
         startCameraPreview();
 
-        filters = filterGenerator.generateFilters();
+        imageOperations = operationGenerator.generateImageOperations();
 
         nextFilter();
 
         GLTools.checkGLError(TAG, "initGL");
     }
 
-    private void applyFilter(Filter f) {
-        currentFilter = f;
-        Log.i(TAG, "switched to "+f.getName()+" filter");
-        currentFilter.initialize();
+    private void applyFilter(ImageOperation f) {
+        currentImageOperation = f;
+        Log.i(TAG, "switched to "+f.getName()+" operation");
+        currentImageOperation.initialize();
     }
 
     private void nextFilter() {
         if(filterIterator == null || !filterIterator.hasNext()) {
-            filterIterator = filters.iterator();
+            filterIterator = imageOperations.iterator();
         }
         applyFilter(filterIterator.next());
     }
@@ -235,7 +235,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
             // Update the camera preview texture
             cameraSurfaceTexture.updateTexImage();
 
-            currentFilter.prepareView();
+            currentImageOperation.prepareView();
 
             GLTools.checkGLError(TAG, "onReadyToDraw");
         }
@@ -248,8 +248,7 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
             if(cameraSurfaceTexture == null) {
                 initGL();
             }
-
-            currentFilter.drawEye(viewInfo);
+            currentImageOperation.drawEye(viewInfo);
         }
     }
 

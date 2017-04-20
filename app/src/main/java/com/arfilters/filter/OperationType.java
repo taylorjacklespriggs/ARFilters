@@ -22,7 +22,7 @@ import com.arfilters.shader.Shader;
 import com.arfilters.shader.ShaderGenerator;
 import com.taylorjs.hproject.arfilters.R;
 
-enum FilterType {
+enum OperationType {
 
     PASS_THROUGH,
 
@@ -35,11 +35,12 @@ enum FilterType {
 
 
     GRAY_EDGES,
-    GRADIENT_EDGES,
     CHROMATIC_EDGES,
+    GRADIENT_EDGES,
 
 
-    ZOOM,
+    LINEAR_ZOOM,
+    NONLINEAR_ZOOM,
 
 
     ANAGLYPH;
@@ -71,40 +72,43 @@ enum FilterType {
         return sg.generateShader();
     }
 
-    public FilterClass getClassType() {
+    public OperationClass getClassType() {
         switch(this) {
             case PASS_THROUGH:
-                return FilterClass.PLAIN;
-            case ZOOM:
-                return FilterClass.TEXTURE_WARP;
+                return OperationClass.PLAIN;
+            case LINEAR_ZOOM:
+            case NONLINEAR_ZOOM:
+                return OperationClass.TEXTURE_WARP;
             case HUE_ROTATION:
             case ANAGLYPH:
-                return FilterClass.COLOR_MAP;
+                return OperationClass.COLOR_MAP;
             case INVERTED:
-                return FilterClass.COLOR_MOD;
+                return OperationClass.COLOR_MOD;
             case GRAY_EDGES:
             case GRADIENT_EDGES:
             case CHROMATIC_EDGES:
-                return FilterClass.EDGES;
+                return OperationClass.EDGES;
         }
 
         if(isColorblindType()) {
-            return FilterClass.COLOR_MAP;
+            return OperationClass.COLOR_MAP;
         }
 
-        return FilterClass.UNKNOWN;
+        return OperationClass.UNKNOWN;
     }
 
     private int getFSResourceID() {
-        if(getClassType() == FilterClass.COLOR_MAP) {
+        if(getClassType() == OperationClass.COLOR_MAP) {
             return R.raw.color_map;
         }
 
         switch(this) {
             case PASS_THROUGH:
                 return R.raw.passthrough;
-            case ZOOM:
-                return R.raw.zoomed_texture_coordinates;
+            case LINEAR_ZOOM:
+                return R.raw.linear_zoomtexcoords;
+            case NONLINEAR_ZOOM:
+                return R.raw.nonlinear_zoomtexcoords;
             case INVERTED:
                 return R.raw.inverted;
             case GRAY_EDGES:
@@ -119,8 +123,8 @@ enum FilterType {
     }
 
     public boolean isColorblindType() {
-        return ordinal() >= FilterType.PROTANOPIA.ordinal()
-            && ordinal() <= FilterType.TRITANOPIA.ordinal();
+        return ordinal() >= OperationType.PROTANOPIA.ordinal()
+            && ordinal() <= OperationType.TRITANOPIA.ordinal();
     }
 
 }

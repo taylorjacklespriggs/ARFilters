@@ -38,8 +38,8 @@ public class RuntimeStatistics {
         double avg = sum/numberOfFrames, stdDev = squaredSum/numberOfFrames;
         stdDev -= avg*avg;
         stdDev = Math.sqrt(stdDev);
-        Log.i(TAG, String.format("min max avg stdev fps : %.4f %.4f %.4f %.4f %.4f",
-                minimumTime, maximumTime, avg, stdDev, 1000/avg));
+        Log.i(TAG, String.format("min max avg stdev : %.4f %.4f %.4f %.4f",
+                minimumTime, maximumTime, avg, stdDev));
         reset();
     }
     public void onNewFrame() {
@@ -48,7 +48,7 @@ public class RuntimeStatistics {
     public void onFinishedFrame() {
         if(startTime != null) {
             startTime = System.nanoTime() - startTime;
-            double ms = startTime / 1000000;
+            double ms = startTime / 1000000.;
             if (sum == 0) {
                 minimumTime = maximumTime = ms;
             } else {

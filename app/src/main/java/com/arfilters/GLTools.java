@@ -33,6 +33,11 @@ public class GLTools {
             GLES20.glViewport(0, 0, width, height);
         }
 
+        public void clear(float r, float g, float b, float a) {
+            GLTools.setFramebuffer(frameBufferID);
+            GLES20.glClearColor(r, g, b, a);
+        }
+
         private final int frameBufferID, textureID;
         private final int width, height;
         public FrameBuffer(int w, int h, int internalFormat, int format,

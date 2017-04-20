@@ -17,11 +17,24 @@
 
 package com.arfilters.filter;
 
-enum FilterClass {
-    PLAIN,
-    COLOR_MAP,
-    TEXTURE_WARP,
-    EDGES,
-    COLOR_MOD,
-    UNKNOWN
+import com.arfilters.shader.Shader;
+import com.arfilters.shader.data.Matrix3x3Data;
+
+class ColorMapOperation extends SingleShaderOperation {
+
+    void updateColorMap(float[] colorMap) {
+        colorMapData.updateData(colorMap);
+    }
+
+    ColorMapOperation(Shader sh,
+                      Matrix3x3Data vertMatrix,
+                      VertexMatrixUpdater vmi,
+                      Matrix3x3Data colorMapMat,
+                      String nm) {
+        super(sh, vertMatrix, vmi, nm);
+        colorMapData = colorMapMat;
+    }
+
+    private final Matrix3x3Data colorMapData;
+
 }

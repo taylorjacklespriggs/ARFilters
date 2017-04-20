@@ -21,7 +21,6 @@ import android.opengl.GLES20;
 
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.ShaderGenerator;
-import com.arfilters.shader.data.FloatData;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.arfilters.shader.data.TextureLocationData;
 import com.arfilters.shader.data.Vector2Data;
@@ -29,14 +28,14 @@ import com.taylorjs.hproject.arfilters.R;
 
 import static com.arfilters.GLTools.FrameBuffer;
 
-class ToonFilter extends BufferedFilter {
+class ToonOperation extends BufferedOperation {
 
-    static ToonFilter create(ShaderGenerator camGen,
-                             ShaderGenerator texGen,
-                             FrameBuffer front,
-                             FrameBuffer back,
-                             Matrix3x3Data vertMatData,
-                             VertexMatrixUpdater ptVmi) {
+    static ToonOperation create(ShaderGenerator camGen,
+                                ShaderGenerator texGen,
+                                FrameBuffer front,
+                                FrameBuffer back,
+                                Matrix3x3Data vertMatData,
+                                VertexMatrixUpdater ptVmi) {
 
         // generate blur shader
         camGen.setComputeColor(R.raw.blur);
@@ -55,7 +54,7 @@ class ToonFilter extends BufferedFilter {
         texGen.setUseDerivatives(false);
         Shader pt = texGen.generateShader();
 
-        return new ToonFilter(quickBlurHoriz, quickBlurVert, finalColor, pt,
+        return new ToonOperation(quickBlurHoriz, quickBlurVert, finalColor, pt,
                 front, back, vertMatData, ptVmi);
     }
 
@@ -105,10 +104,10 @@ class ToonFilter extends BufferedFilter {
         deltaData.updateData(new float[] {0f, 1f/secondBuffer.getHeight()});
     }
 
-    private ToonFilter(Shader horiz, Shader vert, Shader col,
-                       Shader pt, FrameBuffer front,
-                       FrameBuffer back,
-                       Matrix3x3Data vertMatData, VertexMatrixUpdater ptVmi) {
+    private ToonOperation(Shader horiz, Shader vert, Shader col,
+                          Shader pt, FrameBuffer front,
+                          FrameBuffer back,
+                          Matrix3x3Data vertMatData, VertexMatrixUpdater ptVmi) {
         super(pt, vertMatData, ptVmi, "Toon Experimental");
         finalShader = col;
         firstBuffer = front;

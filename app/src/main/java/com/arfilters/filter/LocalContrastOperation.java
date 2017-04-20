@@ -29,15 +29,16 @@ import com.taylorjs.hproject.arfilters.R;
 
 import static com.arfilters.GLTools.FrameBuffer;
 
-class LocalContrastFilter extends BufferedFilter {
+class LocalContrastOperation extends BufferedOperation {
 
-    static LocalContrastFilter create(ShaderGenerator camGen,
-                                      ShaderGenerator texGen,
-                                      FrameBuffer front,
-                                      FrameBuffer back,
-                                      FrameBuffer camera,
-                                      Matrix3x3Data vertMatData,
-                                      VertexMatrixUpdater ptVmi) {
+    static LocalContrastOperation create(ShaderGenerator camGen,
+                                         ShaderGenerator texGen,
+                                         FrameBuffer front,
+                                         FrameBuffer back,
+                                         FrameBuffer camera,
+                                         float fadeAmt,
+                                         Matrix3x3Data vertMatData,
+                                         VertexMatrixUpdater ptVmi) {
         camGen.setComputeColor(R.raw.passthrough);
         Shader ctt = camGen.generateShader();
         texGen.setComputeColor(R.raw.min_max_first);
@@ -46,14 +47,13 @@ class LocalContrastFilter extends BufferedFilter {
         Shader minMaxSecond = texGen.generateShader();
         texGen.setComputeColor(R.raw.local_contrast_fp);
         Shader pt = texGen.generateShader();
-        return new LocalContrastFilter(ctt, minMaxFirst, minMaxSecond, pt, front, back, camera, vertMatData, ptVmi);
+        return new LocalContrastOperation(ctt, minMaxFirst, minMaxSecond, pt, front, back, camera, fadeAmt, vertMatData, ptVmi);
     }
 
     @Override
     public void initialize() {
-        frontBuffer.enable();
-        GLES20.glClearColor(0f, 1f, 0f, 0f);
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+        super.initialize();
+        backBuffer.clear(.5f, 0f, .5f, 0f);
     }
 
     @Override
@@ -79,12 +79,13 @@ class LocalContrastFilter extends BufferedFilter {
 
     }
 
-    private LocalContrastFilter(Shader ctt, Shader minMaxFirst, Shader minMaxSecond, Shader pt,
-                                FrameBuffer front,
-                                FrameBuffer back,
-                                FrameBuffer camera,
-                                Matrix3x3Data vertMatData,
-                                VertexMatrixUpdater ptVmi) {
+    private LocalContrastOperation(Shader ctt, Shader minMaxFirst, Shader minMaxSecond, Shader pt,
+                                   FrameBuffer front,
+                                   FrameBuffer back,
+                                   FrameBuffer camera,
+                                   float fadeAmt,
+                                   Matrix3x3Data vertMatData,
+                                   VertexMatrixUpdater ptVmi) {
         super(pt, vertMatData, ptVmi, "Darkness");
         cameraToTextureShader = ctt;
         minMaxFirstShader = minMaxFirst;
@@ -109,7 +110,7 @@ class LocalContrastFilter extends BufferedFilter {
         minMaxSecondShader.addUniform("u_Texture", bufferTextureData);
         minMaxSecondShader.addUniform("u_Delta", deltaData);
 
-        FloatData fadeAmount = new FloatData(.8f);
+        FloatData fadeAmount = new FloatData(fadeAmt);
         minMaxSecondShader.addUniform("u_FadeAmount", fadeAmount);
 
         pt.addUniform("u_FadeAmount", fadeAmount);

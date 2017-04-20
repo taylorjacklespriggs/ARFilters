@@ -18,7 +18,6 @@
 package com.arfilters.filter;
 
 import android.opengl.GLES20;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import static com.arfilters.GLTools.FrameBuffer;
@@ -31,9 +30,9 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public abstract class ImageSampleFilter extends RTTFilter {
+public abstract class ImageSampleOperation extends RTTOperation {
 
-    private static final String TAG = ImageSampleFilter.class.getName();
+    private static final String TAG = ImageSampleOperation.class.getName();
 
     @Override
     public void cleanup() {
@@ -93,12 +92,12 @@ public abstract class ImageSampleFilter extends RTTFilter {
         postSample();
     }
 
-    ImageSampleFilter(Shader rtt, Shader pt, Shader sampShader, FrameBuffer fb,
-                      FrameBuffer sampBuffer,
-                      Matrix3x3Data vertMatData,
-                      VertexMatrixUpdater ptVmi,
-                      float windowScale,
-                      int updateFreq, String name) {
+    ImageSampleOperation(Shader rtt, Shader pt, Shader sampShader, FrameBuffer fb,
+                         FrameBuffer sampBuffer,
+                         Matrix3x3Data vertMatData,
+                         VertexMatrixUpdater ptVmi,
+                         float windowScale,
+                         int updateFreq, String name) {
         super(rtt, pt, fb, vertMatData, ptVmi, name);
         sampleMatrix = new float[] {
                 1f/windowScale, 0, 0,

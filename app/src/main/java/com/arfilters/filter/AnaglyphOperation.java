@@ -22,7 +22,7 @@ import com.arfilters.shader.ViewInfo;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.google.vr.sdk.base.Eye;
 
-final class AnaglyphFilter extends ColorMapFilter {
+final class AnaglyphOperation extends ColorMapOperation {
 
     @Override
     public void drawEye(ViewInfo vi) {
@@ -30,10 +30,10 @@ final class AnaglyphFilter extends ColorMapFilter {
         super.drawEye(vi);
     }
 
-    AnaglyphFilter(Shader cMapShader, Matrix3x3Data vertMat,
-                   VertexMatrixUpdater vmi, Matrix3x3Data colorMapMatrix,
-                   float[] left, float[] right) {
-        super(cMapShader, vertMat, vmi, colorMapMatrix, FilterType.ANAGLYPH.getName());
+    AnaglyphOperation(Shader cMapShader, Matrix3x3Data vertMat,
+                      VertexMatrixUpdater vmi, Matrix3x3Data colorMapMatrix,
+                      float[] left, float[] right) {
+        super(cMapShader, vertMat, vmi, colorMapMatrix, OperationType.ANAGLYPH.getName());
         leftMap = left;
         rightMap = right;
     }
