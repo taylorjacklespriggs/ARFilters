@@ -127,26 +127,6 @@ class CVDOperation extends ColorMapOperation {
                     vals[k++] = (float) values[i][j];
             return vals;
         }
-        @Override
-        public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append('{');
-            for(int i = 0; i < size; ++i) {
-                sb.append('{');
-                for(int j = 0; j < size; ++j) {
-                    sb.append(values[i][j]);
-                    if(j+1 < size)
-                        sb.append(',');
-                    else
-                        sb.append('}');
-                }
-                if(i+1 < size)
-                    sb.append(',');
-                else
-                    sb.append('}');
-            }
-            return sb.toString();
-        }
         final double[][] values;
     }
 
@@ -200,5 +180,5 @@ class CVDOperation extends ColorMapOperation {
         colorMap = map.getValues();
     }
 
-    protected float[] colorMap;
+    private float[] colorMap;
 }
