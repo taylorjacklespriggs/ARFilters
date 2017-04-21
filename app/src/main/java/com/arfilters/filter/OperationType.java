@@ -22,6 +22,9 @@ import com.arfilters.shader.Shader;
 import com.arfilters.shader.ShaderGenerator;
 import com.taylorjs.hproject.arfilters.R;
 
+/**
+ * Enum for generating the simple operations
+ */
 enum OperationType {
 
     PASS_THROUGH,

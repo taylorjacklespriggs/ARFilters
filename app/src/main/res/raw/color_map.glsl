@@ -17,9 +17,8 @@
  */
 
 
-/*
- *  A simple function that computes fragment color using a color mapping matrix. The function
- *  getFragment(vec2) should be specified.
+/**
+ * A simple function that computes fragment color using a color mapping matrix.
  */
 
 uniform mat3 u_ColorMapMatrix;

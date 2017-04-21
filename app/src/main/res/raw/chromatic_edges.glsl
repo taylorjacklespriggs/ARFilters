@@ -17,8 +17,8 @@
  */
 
 
-/*
- *  Computes the edges for each color. Passes results through a scaled sigmoid.
+/**
+ * Computes the edges for each color. Passes results through a scaled sigmoid.
  */
 
 uniform float u_Threshold;

@@ -17,6 +17,9 @@
 
 package com.arfilters.filter;
 
+/**
+ * Classes of simple image operations
+ */
 enum OperationClass {
     PLAIN,
     COLOR_MAP,

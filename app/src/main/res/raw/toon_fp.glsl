@@ -16,35 +16,44 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  Takes red to be MSB and green to be LSB of grayscale color.
+/**
+ * Final pass of the cartoon operation. Computes edges and discretizes
+ * intensities.
  */
 
- uniform sampler2D u_BufferTexture;
+uniform float u_Threshold;
 
- uniform float u_FadeAmount;
+#define FIRST_T .1
+#define FIRST_V .0
 
- void getGray(out highp float varOut, in vec2 varIn) {
-    varOut = varIn.r*255.;
-    varOut += varIn.g*255./256.;
- }
+#define SECOND_T .3
+#define SECOND_V .3
 
- void setGray(out vec2 varOut, in highp float varIn) {
-    highp float g = mod(varIn, 1.);
-    varOut.g = g*256./255.;
-    varOut.r = (varIn-g)/255.;
- }
+#define THIRD_T .8
+#define THIRD_V .6
+
+#define FINAL_V 1.
 
 void computeColor(out vec4 color, in vec2 texCoord) {
     getTextureFragment(color, texCoord);
-    vec4 noise = texture2D(u_BufferTexture, texCoord);
-
-    highp float gray, avg, var, navg;
-    getGray(gray, color.rg);
-    getGray(avg, noise.rg);
-    getGray(var, noise.ba);
-
-    navg = gray+u_FadeAmount*avg;
-    setGray(color.rg, navg);
-    setGray(color.ba, (gray-navg)*(gray-avg)+u_FadeAmount*var);
+    float edge =
+        length(vec2(dFdx(color.r), dFdy(color.r))) +
+        length(vec2(dFdx(color.g), dFdy(color.g))) +
+        length(vec2(dFdx(color.b), dFdy(color.b)));
+    edge /= u_Threshold;
+    float I = dot(color.rgb, vec3(1./3.));
+    if(I > 0.) {
+        float F;
+        if(I < FIRST_T) {
+            F = FIRST_V;
+        } else if(I < SECOND_T) {
+            F = SECOND_V;
+        } else if(I < THIRD_T) {
+            F = THIRD_V;
+        } else {
+            F = FINAL_V;
+        }
+        color.rgb *= F/I;
+        color.rgb -= vec3(edge);
+    }
 }

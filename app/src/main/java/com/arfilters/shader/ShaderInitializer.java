@@ -23,6 +23,9 @@ import com.arfilters.shader.data.VertexAttributeData;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Initializes shaders with a set of common uniforms and attributes
+ */
 public class ShaderInitializer {
 
     public ShaderInitializer(String vertName, VertexAttributeData vertexData,

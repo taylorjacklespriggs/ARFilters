@@ -18,9 +18,12 @@
 package com.arfilters.filter;
 
 import com.arfilters.shader.Shader;
-import com.arfilters.shader.ViewInfo;
 import com.arfilters.shader.data.Matrix3x3Data;
+import com.google.vr.sdk.base.Eye;
 
+/**
+ * This operation executes a single shader operation on each eye
+ */
 class SingleShaderOperation implements ImageOperation {
 
     @Override
@@ -37,8 +40,8 @@ class SingleShaderOperation implements ImageOperation {
     }
 
     @Override
-    public void drawEye(ViewInfo vi) {
-        vertexMatrixData.updateData(vertMatUpdater.updateVertexMatrix(vi));
+    public void drawEye(Eye eye) {
+        vertexMatrixData.updateData(vertMatUpdater.updateVertexMatrix(eye));
         shader.draw();
     }
 

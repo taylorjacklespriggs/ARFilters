@@ -20,7 +20,11 @@ package com.arfilters.filter;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.data.Matrix3x3Data;
 
-class ColorblindOperation extends ColorMapOperation {
+/**
+ * This operation implements the daltonization algorithm for the specified
+ * type of CVD
+ */
+class CVDOperation extends ColorMapOperation {
 
     private static class Matrix {
         static final int size = 3;
@@ -180,11 +184,11 @@ class ColorblindOperation extends ColorMapOperation {
         updateColorMap(colorMap);
     }
 
-    ColorblindOperation(Shader sh,
-                        Matrix3x3Data vertMatrix,
-                        VertexMatrixUpdater vmi,
-                        Matrix3x3Data colorMapMat,
-                        OperationType ft) {
+    CVDOperation(Shader sh,
+                 Matrix3x3Data vertMatrix,
+                 VertexMatrixUpdater vmi,
+                 Matrix3x3Data colorMapMat,
+                 OperationType ft) {
         super(sh, vertMatrix, vmi, colorMapMat, ft.getName());
         Matrix map = err2mod;
         Matrix chain = err2mod;

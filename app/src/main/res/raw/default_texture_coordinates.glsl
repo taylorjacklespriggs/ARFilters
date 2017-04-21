@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  Computes the texture coordinates directly from the uniform v_TexCoord.
+/**
+ * Computes the texture coordinates directly from the uniform v_TexCoord.
  */
 
 varying vec2 v_TexCoord;

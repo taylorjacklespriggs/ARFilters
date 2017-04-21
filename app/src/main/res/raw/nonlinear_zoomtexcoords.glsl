@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  Modifies the texture coordinates for a zoomed-in effect in the center.
+/**
+ * Modifies the texture coordinates for a zoomed-in effect in the center.
  */
 
 varying vec2 v_TexCoord;

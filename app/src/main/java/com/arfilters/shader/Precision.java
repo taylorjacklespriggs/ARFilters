@@ -17,6 +17,9 @@
 
 package com.arfilters.shader;
 
+/**
+ * Specifies shader precision
+ */
 public enum Precision {
 
     LOW,

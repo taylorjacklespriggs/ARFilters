@@ -16,8 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  Takes red to be MSB and green to be LSB of grayscale color.
+/**
+ * Check the minimum and maximum local intensities using the buffer texture
+ * and scales the colour accordingly
  */
 
 uniform sampler2D u_BufferTexture;

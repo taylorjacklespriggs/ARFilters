@@ -29,6 +29,9 @@ import com.arfilters.shader.variable.Uniform;
 
 import java.util.HashMap;
 
+/**
+ * Stores shader information as program id, attributes and uniforms
+ */
 public class Shader {
 
     private static final String TAG = Shader.class.getName();

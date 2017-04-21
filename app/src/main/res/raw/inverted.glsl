@@ -17,8 +17,8 @@
  */
 
 
-/*
- *  Computes the inverted colors.
+/**
+ * Computes the inverted colors.
  */
 
 void computeColor(out vec4 color, in vec2 fragCoord) {

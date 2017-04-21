@@ -22,6 +22,9 @@ import android.util.Log;
 
 import static android.opengl.GLU.gluErrorString;
 
+/**
+ * A collection of static tools to help use the OpenGL context
+ */
 public class GLTools {
 
     public static class FrameBuffer {

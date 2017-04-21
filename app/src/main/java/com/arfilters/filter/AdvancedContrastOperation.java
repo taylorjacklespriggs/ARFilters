@@ -31,6 +31,9 @@ import java.nio.ByteBuffer;
 
 import static com.arfilters.GLTools.FrameBuffer;
 
+/**
+ * This class implements the histogram equalization method to each colour channel
+ */
 public class AdvancedContrastOperation extends ImageSampleOperation {
 
     public static AdvancedContrastOperation create(ShaderGenerator camGen,

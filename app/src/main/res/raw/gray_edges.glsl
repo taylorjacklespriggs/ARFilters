@@ -17,8 +17,8 @@
  */
 
 
-/*
- *  Computes the edges of the greyscale.
+/**
+ * Computes the edges of the greyscale.
  */
 
 uniform float u_Threshold;

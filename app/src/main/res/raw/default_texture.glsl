@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  Uniform specification and sampling for default glsl textures.
+/**
+ * Uniform specification and sampling for default glsl textures.
  */
 
 uniform sampler2D u_Texture;

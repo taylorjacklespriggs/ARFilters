@@ -17,9 +17,9 @@
  */
 
 
-/*
- *  Uniform specification required for using hardware camera textures and function for sampling
- *  texture.
+/**
+ * Uniform specification required for using hardware camera textures and
+ * function for sampling texture.
  */
 
 uniform samplerExternalOES u_Texture;

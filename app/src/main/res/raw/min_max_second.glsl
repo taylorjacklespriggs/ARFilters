@@ -16,8 +16,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  Takes red to be MSB and green to be LSB of grayscale color.
+/**
+ * Second step of local contrast equalization. Finds maximum and minimum
+ * neighbors on one axis. Sampled texture is stored as minimum and maximum,
+ * output is average and radius.
  */
 
 uniform vec2 u_Delta;

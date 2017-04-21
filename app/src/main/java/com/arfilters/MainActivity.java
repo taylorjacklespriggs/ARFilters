@@ -31,7 +31,6 @@ import android.util.Log;
 
 import com.arfilters.filter.ImageOperation;
 import com.arfilters.filter.OperationGenerator;
-import com.arfilters.shader.ViewInfo;
 
 import com.google.vr.sdk.base.AndroidCompat;
 import com.google.vr.sdk.base.Eye;
@@ -55,11 +54,9 @@ import android.widget.Toast;
 
 public class MainActivity extends GvrActivity implements GvrView.StereoRenderer {
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = MainActivity.class.getName();
 
     private int cameraTextureLocation;
-
-    private ViewInfo viewInfo;
 
     private Camera hardwareCamera;
     private SurfaceTexture cameraSurfaceTexture;
@@ -187,8 +184,6 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
 
         OperationGenerator operationGenerator = new OperationGenerator(resourceLoader);
 
-        viewInfo = operationGenerator.getViewInfo();
-
         // Create texture for camera preview
         cameraTextureLocation = operationGenerator.getCameraTextureLocation();
 
@@ -243,12 +238,11 @@ public class MainActivity extends GvrActivity implements GvrView.StereoRenderer 
 
     @Override
     public void onDrawEye(Eye eye) {
-        viewInfo.setEye(eye);
         if(hardwareCamera != null) {
             if(cameraSurfaceTexture == null) {
                 initGL();
             }
-            currentImageOperation.drawEye(viewInfo);
+            currentImageOperation.drawEye(eye);
         }
     }
 

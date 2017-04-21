@@ -17,8 +17,8 @@
  */
 
 /*
- *  Mix alternate texture with original in one color using red and green channels
- *  for higher precision. Could not render to one 16bit component with GLES20.
+ * Mix alternate texture with original in one color using red and green channels
+ * for higher precision. Fades alternate texture by FadeAmount.
  */
 
  uniform sampler2D u_AlternateTexture;

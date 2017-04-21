@@ -27,11 +27,11 @@ import com.arfilters.VertexData;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.ShaderGenerator;
 import com.arfilters.shader.ShaderInitializer;
-import com.arfilters.shader.ViewInfo;
 import com.arfilters.shader.data.FloatData;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.arfilters.shader.data.TextureLocationData;
 import com.arfilters.shader.data.VertexAttributeData;
+import com.google.vr.sdk.base.Eye;
 import com.taylorjs.hproject.arfilters.R;
 
 import java.util.ArrayList;
@@ -39,10 +39,16 @@ import java.util.Collection;
 
 import javax.microedition.khronos.opengles.GL10;
 
+/**
+ * This class generates all of the implemented filters
+ */
 public class OperationGenerator {
 
-    private static final int CAMERA_WIDTH = 1920, CAMERA_HEIGHT = 1080;
-    private static final int BUFFER_WIDTH = CAMERA_WIDTH, BUFFER_HEIGHT = CAMERA_HEIGHT;
+    private static final int
+            CAMERA_WIDTH = 1920,
+            CAMERA_HEIGHT = 1080,
+            BUFFER_WIDTH = CAMERA_WIDTH,
+            BUFFER_HEIGHT = CAMERA_HEIGHT;
     private static final float THRESHOLD = .1f;
     private static final float STRICTNESS = 20f;
     private static final float SAMPLE_SCALE = 1f/8f;
@@ -51,13 +57,9 @@ public class OperationGenerator {
         return cameraTextureLocation;
     }
 
-    public ViewInfo getViewInfo() {
-        return viewInfo;
-    }
-
     private ImageOperation generateFilter(OperationType type) {
         if(type.isColorblindType()) {
-            return new ColorblindOperation(
+            return new CVDOperation(
                     colorMapShader,
                     vertexMatrixData,
                     eyeUpdate,
@@ -83,7 +85,8 @@ public class OperationGenerator {
         }
 
         Shader sh = type.generateShader(fromCameraShaderGenerator.copy());
-        return new SingleShaderOperation(sh, vertexMatrixData, eyeUpdate, type.getName());
+        return new SingleShaderOperation(sh, vertexMatrixData, eyeUpdate,
+                type.getName());
     }
 
     /*
@@ -191,17 +194,17 @@ public class OperationGenerator {
 
         eyeUpdate = new VertexMatrixUpdater() {
             @Override
-            public float[] updateVertexMatrix(ViewInfo vi) {
-                float scale = .6f;
-                float Cw = scale*CAMERA_WIDTH;
-                float Ch = scale*CAMERA_HEIGHT;
-                float Vw = vi.getWidth();
-                float Vh = vi.getHeight();
+            public float[] updateVertexMatrix(Eye eye) {
+                float scale = 1f/.6f;
+                float Car = CAMERA_WIDTH;
+                Car /= CAMERA_HEIGHT;
+                float Var = eye.getViewport().width;
+                Var /= eye.getViewport().height;
 
                 return new float[]{
-                        Cw / Vw, 0, 0,
-                        0, -Ch / Vh, 0,
-                        (1f - Cw / Vw) / 2f, (1f - Ch / Vh) / 2f, 1
+                        Car/Var, 0, 0,
+                        0, -1, 0,
+                        0, 0, scale
                 };
             }
         };
@@ -224,12 +227,14 @@ public class OperationGenerator {
 
         buffers = new FrameBuffer[3];
         for(int i = 0; i < buffers.length; ++i)
-            buffers[i] = new GLTools.FrameBuffer(BUFFER_WIDTH, BUFFER_HEIGHT, GLES20.GL_RGBA, GLES20.GL_RGBA,
-                    GLES20.GL_UNSIGNED_BYTE, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
+            buffers[i] = new GLTools.FrameBuffer(BUFFER_WIDTH, BUFFER_HEIGHT,
+                    GLES20.GL_RGBA, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE,
+                    GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
 
         sampleBuffer = new GLTools.FrameBuffer((int)(BUFFER_WIDTH*SAMPLE_SCALE),
-                (int)(BUFFER_HEIGHT*SAMPLE_SCALE), GLES20.GL_RGBA, GLES20.GL_RGBA,
-                GLES20.GL_UNSIGNED_BYTE, GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
+                (int)(BUFFER_HEIGHT*SAMPLE_SCALE),
+                GLES20.GL_RGBA, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE,
+                GLES20.GL_LINEAR, GLES20.GL_CLAMP_TO_EDGE);
 
         vertexMatrixData = new Matrix3x3Data();
         colorMapMatrixData = new Matrix3x3Data();
@@ -241,16 +246,18 @@ public class OperationGenerator {
                 GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GL10.GL_LINEAR,
                 GL10.GL_CLAMP_TO_EDGE);
 
-        cameraLocationData = new TextureLocationData(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0, cameraTextureLocation);
+        cameraLocationData = new TextureLocationData(
+                GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0, cameraTextureLocation);
 
         faceVertexData.updateData(VertexData.FACE_COORDS);
 
         faceTexCoordData.updateData(VertexData.FACE_TEX_COORDS);
 
-        defaultShaderInitializer = genShaderInit();
+        ShaderInitializer defaultShaderInitializer = genShaderInit();
         fromCameraShaderGenerator.setInitializer(defaultShaderInitializer);
         fromTextureShaderGenerator.setInitializer(defaultShaderInitializer);
 
+        FloatData strictData, threshData;
         threshData = new FloatData(THRESHOLD);
         strictData = new FloatData(STRICTNESS);
         defaultShaderInitializer.addUniform("u_Threshold", threshData);
@@ -267,18 +274,18 @@ public class OperationGenerator {
 
     private static final float[][] anaglyphMaps = new float[][] {
             {1f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f},
-            {0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f}
+            {0f, 0f, 0f, 0f, .5f, 0f, 0f, 0f, .5f}
     };
 
     private final Shader colorMapShader;
 
-    private final ShaderGenerator fromCameraShaderGenerator, fromTextureShaderGenerator;
-    private final ShaderInitializer defaultShaderInitializer;
+    private final ShaderGenerator
+            fromCameraShaderGenerator,
+            fromTextureShaderGenerator;
 
     private final FrameBuffer[] buffers;
     private final FrameBuffer sampleBuffer;
 
-    private final ViewInfo viewInfo = new ViewInfo();
     private final VertexMatrixUpdater eyeUpdate;
 
     private final Matrix3x3Data vertexMatrixData, colorMapMatrixData;
@@ -289,8 +296,6 @@ public class OperationGenerator {
     private final VertexAttributeData faceTexCoordData =
             new VertexAttributeData(VertexData.FACE_TEX_COORD_DIMENSION,
                     VertexData.FACE_NUMBER_VERTICES);
-
-    private final FloatData strictData, threshData;
 
     private TextureLocationData cameraLocationData;
     private int cameraTextureLocation;

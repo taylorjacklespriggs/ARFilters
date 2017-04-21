@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
+/**
  *  Computes a 7-width gaussian blur along one axis with sigma=1.5
  *  Credit http://dev.theomader.com/gaussian-kernel-calculator/
  */

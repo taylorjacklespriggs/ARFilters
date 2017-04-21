@@ -17,8 +17,11 @@
 
 package com.arfilters.filter;
 
-import com.arfilters.shader.ViewInfo;
+import com.google.vr.sdk.base.Eye;
 
+/**
+ * Interface for image operations
+ */
 public interface ImageOperation {
 
     String getName();
@@ -27,7 +30,7 @@ public interface ImageOperation {
 
     void prepareView();
 
-    void drawEye(ViewInfo vi);
+    void drawEye(Eye eye);
 
     void cleanup();
 

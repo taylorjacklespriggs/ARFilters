@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  This vertex shader computes the position with a vertex transformation matrix
+/**
+ * This vertex shader computes the position with a vertex transformation matrix
  */
 
 attribute vec3 a_Position;
@@ -29,6 +29,7 @@ varying vec2 v_TexCoord;
 
 void main() {
    v_TexCoord = a_TexCoord;
-   vec3 pos = a_Position*u_VertexTransform;
+   vec3 pos = a_Position;
+   pos *= u_VertexTransform;
    gl_Position = vec4(pos.xy, 0., pos.z);
 }

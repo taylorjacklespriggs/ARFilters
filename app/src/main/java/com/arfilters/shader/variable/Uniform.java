@@ -9,7 +9,7 @@ import java.text.MessageFormat;
 
 public class Uniform extends ShaderVariable {
 
-    private static final String TAG = "Uniform";
+    private static final String TAG = Uniform.class.getName();
 
     @Override
     protected int getLocation(int program, String name) {

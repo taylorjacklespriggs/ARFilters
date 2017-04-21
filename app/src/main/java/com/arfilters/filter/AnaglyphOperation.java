@@ -18,16 +18,18 @@
 package com.arfilters.filter;
 
 import com.arfilters.shader.Shader;
-import com.arfilters.shader.ViewInfo;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.google.vr.sdk.base.Eye;
 
+/**
+ * Applies the left and right colour map matrices to the left and right eye respectively
+ */
 final class AnaglyphOperation extends ColorMapOperation {
 
     @Override
-    public void drawEye(ViewInfo vi) {
-        updateColorMap((vi.getEyeType() == Eye.Type.LEFT) ? leftMap : rightMap);
-        super.drawEye(vi);
+    public void drawEye(Eye eye) {
+        updateColorMap((eye.getType() == Eye.Type.LEFT) ? leftMap : rightMap);
+        super.drawEye(eye);
     }
 
     AnaglyphOperation(Shader cMapShader, Matrix3x3Data vertMat,

@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  Modifies the texture coordinates for a zoomed-in effect in the center.
+/**
+ * Scales the texture coordinates linearly
  */
 
 #define ZOOM 4.
@@ -27,6 +27,6 @@ varying vec2 v_TexCoord;
 void getTextureCoordinates(out vec2 texCoord) {
     texCoord = v_TexCoord;
     texCoord -= .5;
-    texCoord /= 4.;
+    texCoord /= ZOOM;
     texCoord += .5;
 }

@@ -25,9 +25,12 @@ import com.arfilters.ResourceLoader;
 
 import java.util.HashMap;
 
+/**
+ * Generates the shader strings and compiles shader programs
+ */
 public class ShaderGenerator {
 
-    private static final String TAG = "ShaderGenerator";
+    private static final String TAG = ShaderGenerator.class.getName();
 
     public void setInitializer(ShaderInitializer si) {
         initializer = si;
@@ -46,15 +49,18 @@ public class ShaderGenerator {
     }
 
     public void setGetTextureFragment(int getTextureFragment) {
-        this.getTextureFragmentString = resourceLoader.readRawTextFile(getTextureFragment);
+        this.getTextureFragmentString =
+                resourceLoader.readRawTextFile(getTextureFragment);
     }
 
     public void setGetTextureCoordinates(int getTextureCoordinates) {
-        this.getTextureCoordinatesString = resourceLoader.readRawTextFile(getTextureCoordinates);
+        this.getTextureCoordinatesString =
+                resourceLoader.readRawTextFile(getTextureCoordinates);
     }
 
     public void setComputeColor(int computeColorString) {
-        this.computeColorString = resourceLoader.readRawTextFile(computeColorString);
+        this.computeColorString =
+                resourceLoader.readRawTextFile(computeColorString);
     }
 
     public void setFloatPrecision(Precision floatPrecision) {

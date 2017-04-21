@@ -16,8 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  Does not modify input color.
+/**
+ * Samples the texture at the given coordinate without modifying the input
+ * colour.
  */
 
 void computeColor(out vec4 color, in vec2 texCoord) {

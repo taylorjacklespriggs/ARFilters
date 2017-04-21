@@ -30,6 +30,9 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * This class allows operations to sample a buffer
+ */
 public abstract class ImageSampleOperation extends RTTOperation {
 
     private static final String TAG = ImageSampleOperation.class.getName();

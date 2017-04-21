@@ -19,6 +19,9 @@ package com.arfilters;
 
 import android.util.Log;
 
+/**
+ * Calculates runtime statistics using delay between frames
+ */
 public class RuntimeStatistics {
     private static final String TAG = RuntimeStatistics.class.getName();
 

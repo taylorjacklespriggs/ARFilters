@@ -16,8 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  Takes red to be MSB and green to be LSB of grayscale color.
+/**
+ * First step of local contrast equalization. Finds maximum and minimum
+ * neighbors in the buffer on one axis. Updates minimum and maximum with
+ * intensity of the camera pixel. Buffer texture is stored as average and
+ * radius, output is minimum and maximum.
  */
 
 uniform sampler2D u_BufferTexture;

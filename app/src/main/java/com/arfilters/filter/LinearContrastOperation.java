@@ -24,6 +24,10 @@ import com.arfilters.shader.data.FloatData;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.taylorjs.hproject.arfilters.R;
 
+/**
+ * Applies a global linear contrast adjustment by regularly sampling frames for
+ * minimum and maximum pixel intensities
+ */
 public class LinearContrastOperation extends ImageSampleOperation {
 
     private static final String TAG = LinearContrastOperation.class.getName();

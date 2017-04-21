@@ -16,8 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  Does not modify input color.
+/**
+ *  Applies the histogram u_CDF to each channel and displays the sample window
+ *  by slightly greying out the surrounding area
  */
 
 uniform sampler2D u_CDF;

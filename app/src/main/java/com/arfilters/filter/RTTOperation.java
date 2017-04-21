@@ -24,6 +24,9 @@ import com.arfilters.shader.Shader;
 import com.arfilters.shader.data.Matrix3x3Data;
 import com.arfilters.shader.data.TextureLocationData;
 
+/**
+ * This operation renders the camera to a texture before rendering to each eye
+ */
 class RTTOperation extends BufferedOperation {
 
     @Override

@@ -20,6 +20,10 @@ package com.arfilters.filter;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.data.Matrix3x3Data;
 
+/**
+ * This class updates the shader for drawing the eye view with a colour map
+ * matrix
+ */
 class ColorMapOperation extends SingleShaderOperation {
 
     void updateColorMap(float[] colorMap) {

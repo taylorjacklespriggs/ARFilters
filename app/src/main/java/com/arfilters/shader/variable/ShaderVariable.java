@@ -3,9 +3,12 @@ package com.arfilters.shader.variable;
 import com.arfilters.GLTools;
 import com.arfilters.shader.data.ShaderData;
 
+/**
+ * This class stores the location in the shader of a variable
+ */
 public abstract class ShaderVariable {
 
-    private static final String TAG = "ShaderVariable";
+    private static final String TAG = ShaderVariable.class.getName();
 
     public String getName() {
         return name;

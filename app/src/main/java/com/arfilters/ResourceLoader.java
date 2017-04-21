@@ -24,6 +24,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+/**
+ * A class for reading resource files by resource id
+ */
 public class ResourceLoader {
 
     public String readRawTextFile(int resId) {

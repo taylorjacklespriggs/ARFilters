@@ -17,6 +17,10 @@
 
 package com.arfilters.shader.data;
 
+/**
+ * Provides an interface for updating shader variables
+ * @param <DataType>
+ */
 public interface ShaderData<DataType> {
 
     void updateData(DataType dt);

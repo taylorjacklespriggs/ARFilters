@@ -17,10 +17,13 @@
 
 package com.arfilters.filter;
 
-import com.arfilters.shader.ViewInfo;
+import com.google.vr.sdk.base.Eye;
 
+/**
+ * Provides an interface for updating the vertex transformation matrix
+ */
 interface VertexMatrixUpdater {
 
-    float[] updateVertexMatrix(ViewInfo vi);
+    float[] updateVertexMatrix(Eye eye);
 
 }

@@ -18,7 +18,7 @@
 package com.arfilters;
 
 /**
- * Contains vertex, normal and color data.
+ * Contains vertex and normal data
  */
 public class VertexData {
 

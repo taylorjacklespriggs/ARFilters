@@ -9,7 +9,7 @@ import java.text.MessageFormat;
 
 public class Attribute extends ShaderVariable {
 
-    private static final String TAG = "Attribute";
+    private static final String TAG = Attribute.class.getName();
 
     @Override
     protected int getLocation(int program, String name) {

@@ -23,6 +23,9 @@ import com.arfilters.GLTools;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.data.Matrix3x3Data;
 
+/**
+ * Class for rendering to buffers before rendering for each eye
+ */
 abstract class BufferedOperation extends SingleShaderOperation {
 
     private static final String TAG = BufferedOperation.class.getName();

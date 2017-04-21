@@ -29,6 +29,9 @@ import com.taylorjs.hproject.arfilters.R;
 
 import static com.arfilters.GLTools.FrameBuffer;
 
+/**
+ * This operation applies a local linear contrast adjustment to the image
+ */
 class LocalContrastOperation extends BufferedOperation {
 
     static LocalContrastOperation create(ShaderGenerator camGen,
@@ -47,7 +50,8 @@ class LocalContrastOperation extends BufferedOperation {
         Shader minMaxSecond = texGen.generateShader();
         texGen.setComputeColor(R.raw.local_contrast_fp);
         Shader pt = texGen.generateShader();
-        return new LocalContrastOperation(ctt, minMaxFirst, minMaxSecond, pt, front, back, camera, fadeAmt, vertMatData, ptVmi);
+        return new LocalContrastOperation(ctt, minMaxFirst, minMaxSecond, pt,
+                front, back, camera, fadeAmt, vertMatData, ptVmi);
     }
 
     @Override
@@ -79,7 +83,8 @@ class LocalContrastOperation extends BufferedOperation {
 
     }
 
-    private LocalContrastOperation(Shader ctt, Shader minMaxFirst, Shader minMaxSecond, Shader pt,
+    private LocalContrastOperation(Shader ctt, Shader minMaxFirst,
+                                   Shader minMaxSecond, Shader pt,
                                    FrameBuffer front,
                                    FrameBuffer back,
                                    FrameBuffer camera,
@@ -96,9 +101,11 @@ class LocalContrastOperation extends BufferedOperation {
 
         deltaData = new Vector2Data();
 
-        bufferTextureData = new TextureLocationData(GLES20.GL_TEXTURE_2D, 1, backBuffer.getTextureID());
+        bufferTextureData = new TextureLocationData(GLES20.GL_TEXTURE_2D, 1,
+                backBuffer.getTextureID());
 
-        TextureLocationData camLoc = new TextureLocationData(GLES20.GL_TEXTURE_2D, 0, cameraBuffer.getTextureID());
+        TextureLocationData camLoc = new TextureLocationData(
+                GLES20.GL_TEXTURE_2D, 0, cameraBuffer.getTextureID());
 
         pt.addUniform("u_Texture", camLoc);
         pt.addUniform("u_BufferTexture", bufferTextureData);
@@ -116,7 +123,10 @@ class LocalContrastOperation extends BufferedOperation {
         pt.addUniform("u_FadeAmount", fadeAmount);
     }
 
-    private final Shader cameraToTextureShader, minMaxFirstShader, minMaxSecondShader;
+    private final Shader
+            cameraToTextureShader,
+            minMaxFirstShader,
+            minMaxSecondShader;
     private FrameBuffer frontBuffer, backBuffer;
     private final FrameBuffer cameraBuffer;
     private final TextureLocationData

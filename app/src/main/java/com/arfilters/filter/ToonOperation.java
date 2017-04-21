@@ -28,6 +28,9 @@ import com.taylorjs.hproject.arfilters.R;
 
 import static com.arfilters.GLTools.FrameBuffer;
 
+/**
+ * This operation smooths the image, highlights edges and discretizes intensity
+ */
 class ToonOperation extends BufferedOperation {
 
     static ToonOperation create(ShaderGenerator camGen,
@@ -46,7 +49,7 @@ class ToonOperation extends BufferedOperation {
         Shader quickBlurVert = texGen.generateShader();
 
         // create the final pass shader
-        texGen.setComputeColor(R.raw.toon_finalpass);
+        texGen.setComputeColor(R.raw.toon_fp);
         texGen.setUseDerivatives(true);
         Shader finalColor = texGen.generateShader();
 

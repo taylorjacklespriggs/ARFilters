@@ -31,6 +31,10 @@ import java.nio.ByteBuffer;
 
 import static com.arfilters.GLTools.FrameBuffer;
 
+/**
+ * This operation integrates the image and applies a histogram equalization to
+ * the result
+ */
 class NightVisionOperation extends ImageSampleOperation {
 
     private static final String TAG = NightVisionOperation.class.getName();
@@ -57,11 +61,11 @@ class NightVisionOperation extends ImageSampleOperation {
         Shader sampShader = texGen.generateShader();
 
         // generate mixing shader
-        texGen.setComputeColor(R.raw.monochrome_mixing_texture);
+        texGen.setComputeColor(R.raw.nv_mixing);
         Shader mix = texGen.generateShader();
 
         // create the passThrough shader
-        texGen.setComputeColor(R.raw.monochrome_finalpass);
+        texGen.setComputeColor(R.raw.nv_fp);
         Shader pt = texGen.generateShader();
 
         return new NightVisionOperation(ctt, mix, pt, sampShader, r, 1f, 0, front, back,

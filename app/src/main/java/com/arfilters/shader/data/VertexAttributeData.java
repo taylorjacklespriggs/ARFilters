@@ -22,6 +22,9 @@ import android.util.Log;
 
 import java.text.MessageFormat;
 
+/**
+ * This class enables special handling of vertex attributes
+ */
 public class VertexAttributeData extends FloatBufferData {
 
     private static final String TAG = "VertexAttributeData";

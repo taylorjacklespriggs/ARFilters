@@ -20,6 +20,9 @@ package com.arfilters.filter;
 import com.arfilters.shader.Shader;
 import com.arfilters.shader.data.Matrix3x3Data;
 
+/**
+ * This operation cycles through all of the hue shifts after a specified period
+ */
 class HueRotationOperation extends ColorMapOperation {
 
     @Override

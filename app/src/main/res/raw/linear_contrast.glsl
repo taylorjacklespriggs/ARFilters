@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- *  Does not modify input color.
+/**
+ * Applies a linear contrast adjustment
  */
 
 uniform float u_Affine, u_Scale;

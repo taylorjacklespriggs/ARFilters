@@ -17,10 +17,9 @@
  */
 
 
-/*
- *  All final pass fragment shader programs should use this main() and implement
- *  computeTextureCoordinates(out vec2) and computeColor(out vec3, in vec2).
- *  This reduces reused code.
+/**
+ * All fragment shader programs should use this main() and implement
+ * getTextureCoordinates(inout vec2) and computeColor(out vec3, in vec2).
  */
 
 void main() {
